@@ -1,0 +1,44 @@
+28
+0 9 3 0
+1 9 4 0
+2 13 1 
+3 17 2
+4 11 3
+5 10 criminal_jail@(2) 4
+6 8 3
+7 13 2
+8 16 7
+9 7 8
+10 14 2 8
+11 17 10
+12 13 11
+13 11 12
+14 10 criminal_jail@(3) 13
+15 11 12
+16 10 criminal_jail@(4) 15
+17 8 11
+18 16 7
+19 7 18
+20 14 2 18
+21 17 20
+22 13 21
+23 11 22
+24 10 criminal_free@(3) 23
+25 11 22
+26 10 criminal_free@(4) 25
+27 8 21
+
+/*
+#define TRUE_NODE 7
+#define FALSE_NODE 8
+#define PARSE_ROOT 9
+#define ATOMIC 10
+#define NOT 11
+#define OR 12
+#define AND 13
+#define PLUS 14
+#define MINUS 15
+#define UNTIL 16
+#define WNTIL 17
+#define NEXT 18
+*/
