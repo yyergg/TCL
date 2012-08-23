@@ -36,7 +36,24 @@ class PSIL_Game_Edge;
 #define FALSE_GUESSED_PHASE_2 5
 #define DONT_CARE 6
 
+#define TRUE_NODE 7
+#define FALSE_NODE 8
+#define PARSE_ROOT 9
+#define ATOMIC 10
+#define NOT 11
+#define OR 12
+#define AND 13
+#define PLUS 14
+#define MINUS 15
+#define UNTIL 16
+#define WNTIL 17
+#define NEXT 18
 
+
+#define PASS 21
+#define FAIL 22
+#define UNVISITED 23
+#define CONTINUE 24
 
 
 class Computation_Tree_Node{
@@ -55,18 +72,7 @@ class Computation_Tree_Node{
 };
 
 
-#define TRUE_NODE 7
-#define FALSE_NODE 8
-#define PARSE_ROOT 9
-#define ATOMIC 10
-#define NOT 11
-#define OR 12
-#define AND 13
-#define PLUS 14
-#define MINUS 15
-#define UNTIL 16
-#define WNTIL 17
-#define NEXT 18
+
 
 
 class PSIL_Formula{

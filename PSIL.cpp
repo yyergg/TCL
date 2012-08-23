@@ -19,6 +19,7 @@ PSIL_Game_Node* temp_node;
 string temp_string;
 char temp_char[1000];
 map<string,int> node_map;
+map<int,string> type_map;
 vector<PSIL_Game_Node*> Nodes;
 vector<PSIL_Formula*> Parse_Tree;
 vector<PSIL_Formula*> Closure;
@@ -29,6 +30,41 @@ PSIL_Formula* ROOT_ptr;
 int ** Matrix;
 int* strategy_stack;
 //Global End
+
+int	cplugin_proc(int module_index,int	proc_index) {
+  switch(module_index) {
+  case 1:
+    break;
+  case 2:
+    break;
+  case 3:
+    switch (proc_index) {
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3:
+
+      break;
+    default:
+      fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
+        module_index, proc_index
+      );
+      fflush(RED_OUT);
+      exit(0);
+    }
+    break;
+  default:
+    fprintf(RED_OUT,
+      "\nCPLUG-INs: Illegal module index %1d.\n", module_index
+    );
+    fflush(RED_OUT);
+    exit(0);
+  }
+}
+
+
+
 
 Computation_Tree_Node::Computation_Tree_Node(){
 	int i;
@@ -62,7 +98,10 @@ void print_parse_tree(PSIL_Formula* F, int depth){
 	for(i=0;i<depth;i++){
 		cout<<"  ";
 	}
-	cout<<F->index<<" "<<F->type<<" "<<F->outs.size()<<endl;
+	cout<<F->index<<" "<<type_map[F->type]<<" ";
+	if(F->type==ATOMIC){cout<<F->str;}
+	else if(F->type==PARSE_ROOT || F->type==PLUS){cout<<F->owner;}
+	cout<<endl;
 	for(i=0;i<F->outs.size();i++){
 		print_parse_tree(F->outs[i],depth+1);
 	}
@@ -336,10 +375,7 @@ bool check_parent(int a,int b){
 	return true;
 }
 
-#define PASS 1
-#define FAIL 2
-#define UNVISITED 3
-#define CONTINUE 4
+
 
 int Check_Visited(Computation_Tree_Node* R){
 	int i;
@@ -935,7 +971,6 @@ bool Create_Pass_Down(Computation_Tree_Node* R,bool &controlled){
 	if(controlled==true){
 		for(i=0;i<closure_COUNT;i++){
 			if(Matrix[y][i]==1 && R->G[i]==MUST_TRUE && Closure[i]->type==NEXT && R->passed[i]==false){
-				cout<<"kkk"<<endl;				
         R->pass_down[i]=DONT_CARE;
         R->pass_down[find_next_closure(Closure[i]->outs[0]->index)]=MUST_TRUE;
         R->passed[i]=true;
@@ -1188,6 +1223,21 @@ int main(int argc,char** argv) {
 	node_map[temp_string.assign(red_diagram_string(root->red))]=root->index;
 	path=red_query_diagram_enhanced_global_invariance();
 	sxi_COUNT=red_query_sync_xtion_count(RED_USE_DECLARED_SYNC_XTION);
+	type_map[TRUE_NODE]="TRUE";
+	type_map[FALSE_NODE]="FALSE";
+	type_map[PARSE_ROOT]="ROOT";
+	type_map[ATOMIC]="ATOMIC";
+	type_map[NOT]="NOT";
+	type_map[OR]="OR";
+	type_map[AND]="AND";
+	type_map[PLUS]="PLUS";
+	type_map[MINUS]="MINUS";
+	type_map[UNTIL]="UNTIL";
+	type_map[WNTIL]="WNTIL";
+	type_map[NEXT]="NEXT";
+	
+	
+	
 	//initial variables
 
 	cout<<endl;
@@ -1226,34 +1276,3 @@ int main(int argc,char** argv) {
 
 
 
-int	cplugin_proc(int module_index,int	proc_index) {
-  switch(module_index) {
-  case 1:
-    break;
-  case 2:
-    break;
-  case 3:
-    switch (proc_index) {
-    case 1:
-      break;
-    case 2:
-      break;
-    case 3:
-
-      break;
-    default:
-      fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
-        module_index, proc_index
-      );
-      fflush(RED_OUT);
-      exit(0);
-    }
-    break;
-  default:
-    fprintf(RED_OUT,
-      "\nCPLUG-INs: Illegal module index %1d.\n", module_index
-    );
-    fflush(RED_OUT);
-    exit(0);
-  }
-}
