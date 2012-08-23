@@ -1,3 +1,5 @@
+#ifndef PSIL_H
+#define PSIL_H
 #include<iostream>
 #include<fstream>
 #include<stdlib.h>
@@ -98,39 +100,4 @@ class PSIL_Game_Edge{
 
 
 
-
-
-int	cplugin_proc(
-  int	module_index,
-  int	proc_index
-) {
-  switch(module_index) {
-  case 1:
-    break;
-  case 2:
-    break;
-  case 3:
-    switch (proc_index) {
-    case 1:
-      break;
-    case 2:
-      break;
-    case 3:
-
-      break;
-    default:
-      fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
-        module_index, proc_index
-      );
-      fflush(RED_OUT);
-      exit(0);
-    }
-    break;
-  default:
-    fprintf(RED_OUT,
-      "\nCPLUG-INs: Illegal module index %1d.\n", module_index
-    );
-    fflush(RED_OUT);
-    exit(0);
-  }
-}
+#endif

@@ -1,10 +1,18 @@
-#include"PSIL.h"
+#include "PSIL.h"
 
+/*extern function from parser*/
+extern "C" int yylex();
+extern "C" int yyparse();
+extern "C" FILE *yyin;
 
 //Global variables
+int sxi_COUNT;
+int node_COUNT;
+int strategy_COUNT;
+int closure_COUNT;
+int parse_COUNT;
+
 char input_owner[20]="turn";
-fstream formula_file;
-int sxi_COUNT,node_COUNT,strategy_COUNT,closure_COUNT,next_DEPTH;
 redgram path;
 PSIL_Game_Edge* temp_edge;
 PSIL_Game_Node* temp_node;
@@ -16,10 +24,36 @@ vector<PSIL_Formula*> Parse_Tree;
 vector<PSIL_Formula*> Closure;
 vector<int> strategy2owner;
 
+PSIL_Formula* ROOT_ptr;
+
 int ** Matrix;
 int* strategy_stack;
-
 //Global End
+
+Computation_Tree_Node::Computation_Tree_Node(){
+	int i;
+	G=new int[closure_COUNT];
+	until_token=0;
+	until_token_old=0;
+	obligation=new int[closure_COUNT];
+	pass_down=new int[closure_COUNT];
+	passed=new bool[closure_COUNT];
+	for(i=0;i<closure_COUNT;i++){
+		G[i]=DONT_CARE;
+		obligation[i]=0;
+		pass_down[i]=0;
+		passed[i]=false;
+	}
+}
+
+Computation_Tree_Node::~Computation_Tree_Node(){
+	delete G;
+	delete obligation;
+	delete pass_down;
+	delete passed;
+}
+
+
 
 
 
@@ -28,125 +62,58 @@ void print_parse_tree(PSIL_Formula* F, int depth){
 	for(i=0;i<depth;i++){
 		cout<<"  ";
 	}
-	cout<<F->index<<endl;
+	cout<<F->index<<" "<<F->type<<" "<<F->outs.size()<<endl;
 	for(i=0;i<F->outs.size();i++){
 		print_parse_tree(F->outs[i],depth+1);
 	}
 }
 
-void print_strategy2owner(){
+void Setup_PSIL_Formula(PSIL_Formula* F){
 	int i;
-	cout<<"strategy2owner:"<<endl;
-	for(i=0;i<strategy2owner.size();i++){
-		cout<<strategy2owner[i]<<" ";
-	}
-	cout<<endl;
-}
-void print_strategy_stack(){
-	int i;
-	cout<<"strategy_stack:"<<endl;
-	for(i=0;i<strategy_COUNT;i++){
-		cout<<strategy_stack[i]<<" ";
-	}
-	cout<<endl;
-}
-
-void print_matrix(){
-	int i,j;
-	cout<<setw(7)<<"*******";
-	for(i=0;i<closure_COUNT;i++){
-		cout<<setw(5)<<Closure[i]->index;
-	}
-	cout<<endl;
-	for(i=0;i<strategy_COUNT;i++){
-		string temp_string;
-		stringstream ss(temp_string);
-		ss<<i<<"("<<strategy2owner[i]<<")";
-		cout<<setw(7)<<ss.str();
-		for(j=0;j<closure_COUNT;j++){
-			cout<<setw(5)<<Matrix[i][j];
+	Parse_Tree.push_back(F);
+	if(F->type==PARSE_ROOT || F->type==PLUS){
+		strategy2owner.push_back(F->owner);
+		F->index=parse_COUNT;
+		parse_COUNT++;
+		F->strategy_index=strategy_COUNT;
+		strategy_COUNT++;
+		F->closure_index=0;
+		for(i=0;i<F->outs.size();i++){
+			Setup_PSIL_Formula(F->outs[i]);
 		}
-		cout<<endl;
 	}
-	cout<<endl;
-}
-
-
-bool check_parent(int a,int b){
-	if(a==b){return true;}
+	else if(F->type==MINUS){
+		F->index=parse_COUNT;
+		parse_COUNT++;
+		F->strategy_index=-1;
+		F->closure_index=0;
+		for(i=0;i<F->outs.size();i++){
+			Setup_PSIL_Formula(F->outs[i]);
+		}
+	}
+	else if(F->type==ATOMIC){
+		F->index=parse_COUNT;
+		parse_COUNT++;
+		F->closure_index=closure_COUNT;
+		Closure.push_back(F);
+		closure_COUNT++;
+		F->strategy_index=0;
+		for(i=0;i<F->outs.size();i++){
+			Setup_PSIL_Formula(F->outs[i]);
+		}
+	}
 	else{
-		if(a>b){
-			while(a!=0){
-				a=Parse_Tree[a]->ins[0]->index;
-				if(a==b){return false;}
-			}
-		}
-		else if(a<b){
-			while(b!=0){
-				b=Parse_Tree[b]->ins[0]->index;
-				if(a==b){return false;}
-			}
+		F->index=parse_COUNT;
+		parse_COUNT++;
+		F->closure_index=closure_COUNT;
+		Closure.push_back(F);
+		closure_COUNT++;
+		F->strategy_index=0;
+		for(i=0;i<F->outs.size();i++){
+			Setup_PSIL_Formula(F->outs[i]);
 		}
 	}
-	return true;
 }
-
-#define PASS 1
-#define FAIL 2
-#define UNVISITED 3
-#define CONTINUE 4
-
-int Check_Visited(Computation_Tree_Node* R){
-	int i;
-
-	if(Closure[R->until_token_old]->type==UNTIL && R->G[R->until_token_old]==TRUE_GUESSED_PHASE_2){
-		R->until_token=R->until_token_old;
-	}
-	else if(Closure[R->until_token_old]->type==WNTIL && R->G[R->until_token_old]==FALSE_GUESSED_PHASE_2){
-		R->until_token=R->until_token_old;
-	}	
-	else{
-		R->until_token=(R->until_token_old+1)%(closure_COUNT+1);
-		while(R->until_token!=0 || (Closure[R->until_token]->type!=UNTIL && Closure[R->until_token]->type!=WNTIL)){
-			R->until_token=(R->until_token+1)%(closure_COUNT+1);
-		}
-	}
-	cout<<"Check_visited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
-	
-	
-	Computation_Tree_Node* ancestor;
-	ancestor=R;
-	int local_index;
-	local_index=R->state->index;
-	bool token_changed;
-	token_changed=false;
-	while(ancestor->ins!=NULL){
-		ancestor=ancestor->ins;
-		if(ancestor->until_token!=R->until_token){token_changed=true;}
-		else{
-			if(ancestor->state->index==local_index){
-				bool diff_G;
-				diff_G=false;
-				for(i=0;i<closure_COUNT;i++){
-					if(R->G[i]!=ancestor->G[i]){diff_G=true;}
-				}
-				if(diff_G==false){
-					if(token_changed || R->until_token==0){
-						cout<<"visited and pass"<<endl;
-						return PASS;
-					}
-					else{
-						cout<<"visited and fail"<<endl;
-						return FAIL;
-					}
-				}
-			}
-		}
-	}
-	cout<<"unvisited"<<endl;
-	return UNVISITED;
-}
-
 
 void fill_in_matrix(PSIL_Formula* F){
 	int i;
@@ -242,6 +209,16 @@ void fill_in_matrix(PSIL_Formula* F){
 }
 
 
+
+
+int find_next_closure(int x){
+	if(Parse_Tree[x]->type==PARSE_ROOT || Parse_Tree[x]->type==PLUS || Parse_Tree[x]->type==MINUS){
+		return find_next_closure(Parse_Tree[x]->outs[0]->index);
+	}
+	else {return Parse_Tree[x]->closure_index;}
+}
+
+
 void setup_matrix(){
 	int i,j;
 	Matrix=new int*[strategy_COUNT];
@@ -260,61 +237,33 @@ void setup_matrix(){
 	}
 }
 
-
-void Setup_PSIL_Formula(){
-	strategy_COUNT=0;
-	closure_COUNT=0;
-	next_DEPTH=0;
-	int counter=0;
-	int parent;
-	int i;
-	formula_file>>counter;
-	for(i=0;i<counter;i++){
-		//cout<<i<<endl;
-		PSIL_Formula* F=new PSIL_Formula;
-		Parse_Tree.push_back(F);
-		formula_file>>F->index>>F->type;
-		if(F->type==PARSE_ROOT || F->type==PLUS){
-			formula_file>>F->owner>>parent;
-			strategy2owner.push_back(F->owner);
-			if(F->index!=0){
-				Parse_Tree[parent]->outs.push_back(F);
-				F->ins.push_back(Parse_Tree[parent]);
-			}
-			F->strategy_index=strategy_COUNT;
-			strategy_COUNT++;
-			F->closure_index=0;
-		}
-		else if(F->type==MINUS){
-			formula_file>>F->owner>>parent;
-			Parse_Tree[parent]->outs.push_back(F);
-			F->ins.push_back(Parse_Tree[parent]);
-			F->strategy_index=-1;
-			F->closure_index=0;
-		}
-		else if(F->type==ATOMIC){
-			formula_file>>F->str>>parent;
-			Parse_Tree[parent]->outs.push_back(F);
-			F->ins.push_back(Parse_Tree[parent]);
-			F->closure_index=closure_COUNT;
-			Closure.push_back(F);
-			closure_COUNT++;
-			F->strategy_index=0;
-		}
-		else{
-			formula_file>>parent;
-			Parse_Tree[parent]->outs.push_back(F);
-			F->ins.push_back(Parse_Tree[parent]);
-			F->closure_index=closure_COUNT;
-			Closure.push_back(F);
-			closure_COUNT++;
-			F->strategy_index=0;
-		}
+void print_matrix(){
+	int i,j;
+	cout<<setw(7)<<"*******";
+	for(i=0;i<closure_COUNT;i++){
+		cout<<setw(5)<<Closure[i]->index;
 	}
-	print_strategy2owner();
-	setup_matrix();
-	fill_in_matrix(Parse_Tree[0]);
-	print_matrix();
+	cout<<endl;
+	for(i=0;i<strategy_COUNT;i++){
+		string temp_string;
+		stringstream ss(temp_string);
+		ss<<i<<"("<<strategy2owner[i]<<")";
+		cout<<setw(7)<<ss.str();
+		for(j=0;j<closure_COUNT;j++){
+			cout<<setw(5)<<Matrix[i][j];
+		}
+		cout<<endl;
+	}
+	cout<<endl;
+}
+
+void print_strategy2owner(){
+	int i;
+	cout<<"strategy2owner:"<<endl;
+	for(i=0;i<strategy2owner.size();i++){
+		cout<<strategy2owner[i]<<" ";
+	}
+	cout<<endl;
 }
 
 void Draw(PSIL_Game_Node* root){
@@ -368,39 +317,80 @@ void Draw(PSIL_Game_Node* root){
 	}
 }
 
-Computation_Tree_Node::Computation_Tree_Node(){
+bool check_parent(int a,int b){
+	if(a==b){return true;}
+	else{
+		if(a>b){
+			while(a!=0){
+				a=Parse_Tree[a]->ins[0]->index;
+				if(a==b){return false;}
+			}
+		}
+		else if(a<b){
+			while(b!=0){
+				b=Parse_Tree[b]->ins[0]->index;
+				if(a==b){return false;}
+			}
+		}
+	}
+	return true;
+}
+
+#define PASS 1
+#define FAIL 2
+#define UNVISITED 3
+#define CONTINUE 4
+
+int Check_Visited(Computation_Tree_Node* R){
 	int i;
-	G=new int[closure_COUNT];
-	until_token=0;
-	until_token_old=0;
-	obligation=new int[closure_COUNT];
-	pass_down=new int[closure_COUNT];
-	passed=new bool[closure_COUNT];
-	for(i=0;i<closure_COUNT;i++){
-		G[i]=DONT_CARE;
-		obligation[i]=0;
-		pass_down[i]=0;
-		passed[i]=false;
+
+	if(Closure[R->until_token_old]->type==UNTIL && R->G[R->until_token_old]==TRUE_GUESSED_PHASE_2){
+		R->until_token=R->until_token_old;
 	}
-}
-
-Computation_Tree_Node::~Computation_Tree_Node(){
-	delete G;
-	delete obligation;
-	delete pass_down;
-	delete passed;
-}
-
-
-int find_next_closure(int x){
-	if(Parse_Tree[x]->type==PARSE_ROOT || Parse_Tree[x]->type==PLUS || Parse_Tree[x]->type==MINUS){
-		return find_next_closure(Parse_Tree[x]->outs[0]->index);
+	else if(Closure[R->until_token_old]->type==WNTIL && R->G[R->until_token_old]==FALSE_GUESSED_PHASE_2){
+		R->until_token=R->until_token_old;
+	}	
+	else{
+		R->until_token=(R->until_token_old+1)%(closure_COUNT+1);
+		while(R->until_token!=0 || (Closure[R->until_token]->type!=UNTIL && Closure[R->until_token]->type!=WNTIL)){
+			R->until_token=(R->until_token+1)%(closure_COUNT+1);
+		}
 	}
-	else {return Parse_Tree[x]->closure_index;}
+	cout<<"Check_visited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
+	
+	
+	Computation_Tree_Node* ancestor;
+	ancestor=R;
+	int local_index;
+	local_index=R->state->index;
+	bool token_changed;
+	token_changed=false;
+	while(ancestor->ins!=NULL){
+		ancestor=ancestor->ins;
+		if(ancestor->until_token!=R->until_token){token_changed=true;}
+		else{
+			if(ancestor->state->index==local_index){
+				bool diff_G;
+				diff_G=false;
+				for(i=0;i<closure_COUNT;i++){
+					if(R->G[i]!=ancestor->G[i]){diff_G=true;}
+				}
+				if(diff_G==false){
+					if(token_changed || R->until_token==0){
+						cout<<"visited and pass"<<endl;
+						return PASS;
+					}
+					else{
+						cout<<"visited and fail"<<endl;
+						return FAIL;
+					}
+				}
+			}
+		}
+	}
+	cout<<"unvisited"<<endl;
+	return UNVISITED;
 }
-
-
-
 
 void First_Guess(Computation_Tree_Node* R){
 	int i,j;
@@ -1170,32 +1160,22 @@ bool Check_PSIL(Computation_Tree_Node* R){
 
 
 
-
-
-
-
-
-
-int main(int argc, char** argv){
-	node_COUNT=1;
-	sxi_COUNT=0;
-
+int main(int argc,char** argv) {
 	int i,j,k;
 	int lb,hb;
 
-
-	if(argc!=3){cout<<"Parameter error!!"<<endl;}
-	formula_file.open(argv[2],ios::in);
-
-	PSIL_Formula* F;
-	F=new PSIL_Formula;
-
-
+	sxi_COUNT=0;
+	node_COUNT=1;
+	strategy_COUNT=0;
+	closure_COUNT=0;
+	parse_COUNT=0;
+	//initial golbal variables
 
 	red_begin_session(RED_SYSTEM_TIMED, argv[1], -1);	// -P n; n = process number, -1 == default
 	red_input_model(argv[1], RED_REFINE_GLOBAL_INVARIANCE);
 	red_set_sync_bulk_depth(3);
 	//read in the model
+
 
 	PSIL_Game_Node* root;
 	root=new PSIL_Game_Node;
@@ -1210,16 +1190,22 @@ int main(int argc, char** argv){
 	sxi_COUNT=red_query_sync_xtion_count(RED_USE_DECLARED_SYNC_XTION);
 	//initial variables
 
-
 	cout<<endl;
 	Draw(root);
-
 	//Draw the graph
-  cout<<"DRAW DONE"<<endl;
 
-	Setup_PSIL_Formula();
+	FILE *infile = fopen(argv[2], "r");
+	yyin=infile;
+	do {
+		yyparse();
+	} while (!feof(yyin));
+	Setup_PSIL_Formula(ROOT_ptr);
+	print_strategy2owner();
+	setup_matrix();
+	fill_in_matrix(Parse_Tree[0]);
+	print_matrix();
 	print_parse_tree(Parse_Tree[0],0);
-	//setup formula
+	//read in formula	
 
 	Computation_Tree_Node* R =new Computation_Tree_Node;
 	R->ins=NULL;
@@ -1234,15 +1220,40 @@ int main(int argc, char** argv){
 
 	Check_PSIL(R);
 
-
-
-
-
-
-
-	//Check_PSIL
-
-	red_end_session();
 	return 0;
 }
 
+
+
+
+int	cplugin_proc(int module_index,int	proc_index) {
+  switch(module_index) {
+  case 1:
+    break;
+  case 2:
+    break;
+  case 3:
+    switch (proc_index) {
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3:
+
+      break;
+    default:
+      fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
+        module_index, proc_index
+      );
+      fflush(RED_OUT);
+      exit(0);
+    }
+    break;
+  default:
+    fprintf(RED_OUT,
+      "\nCPLUG-INs: Illegal module index %1d.\n", module_index
+    );
+    fflush(RED_OUT);
+    exit(0);
+  }
+}

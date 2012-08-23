@@ -18,13 +18,13 @@ mode police(true){
 }
 
 mode prisoner_jail(true){
-	when ?ask (P!=1) may counter_confess++1; goto prisoner_confess;
-	when ?ask (true) may counter_deny++1; goto prisoner_deny;
+	when ?ask (true) may counter_confess++1; goto prisoner_confess;
+	when ?ask (P!=1) may counter_deny++1; goto prisoner_deny;
 }
 
 mode prisoner_free(true){
-	when ?ask (P!=1) may counter_confess++1; goto prisoner_confess;
-	when ?ask (true) may counter_deny++1; goto prisoner_deny;
+	when ?ask (true) may counter_confess++1; goto prisoner_confess;
+	when ?ask (P!=1) may counter_deny++1; goto prisoner_deny;
 }
 
 mode prisoner_confess(true){
