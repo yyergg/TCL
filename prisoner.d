@@ -1,4 +1,4 @@
-#define Prisoner_Count 2
+#define Prisoner_Count 3
 process count=Prisoner_Count+1;
 
 

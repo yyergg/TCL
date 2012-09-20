@@ -378,20 +378,24 @@ bool check_parent(int a,int b){
 
 
 int Check_Visited(Computation_Tree_Node* R){
+	cout<<"check visited"<<endl;
 	int i;
-
-	if(Closure[R->until_token_old]->type==UNTIL && R->G[R->until_token_old]==TRUE_GUESSED_PHASE_2){
+	if(R->until_token_old==0){
+		R->until_token=(R->until_token_old+1)%(closure_COUNT+1);
+	}
+	else if(Closure[R->until_token_old-1]->type==UNTIL && R->G[R->until_token_old-1]==TRUE_GUESSED_PHASE_2){
 		R->until_token=R->until_token_old;
 	}
-	else if(Closure[R->until_token_old]->type==WNTIL && R->G[R->until_token_old]==FALSE_GUESSED_PHASE_2){
+	else if(Closure[R->until_token_old-1]->type==WNTIL && R->G[R->until_token_old-1]==FALSE_GUESSED_PHASE_2){
 		R->until_token=R->until_token_old;
 	}	
 	else{
 		R->until_token=(R->until_token_old+1)%(closure_COUNT+1);
-		while(R->until_token!=0 || (Closure[R->until_token]->type!=UNTIL && Closure[R->until_token]->type!=WNTIL)){
+		while(R->until_token!=0 && (Closure[R->until_token-1]->type!=UNTIL && Closure[R->until_token-1]->type!=WNTIL)){
 			R->until_token=(R->until_token+1)%(closure_COUNT+1);
 		}
 	}
+
 	cout<<"Check_visited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
 	
 	
@@ -412,7 +416,7 @@ int Check_Visited(Computation_Tree_Node* R){
 					if(R->G[i]!=ancestor->G[i]){diff_G=true;}
 				}
 				if(diff_G==false){
-					if(token_changed || R->until_token==0){
+					if(token_changed && R->until_token==0){
 						cout<<"visited and pass"<<endl;
 						return PASS;
 					}
@@ -447,27 +451,23 @@ void First_Guess(Computation_Tree_Node* R){
 				case AND:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
+					R->G[i]=MUST_TRUE;
 					R->G[left]=MUST_TRUE;
 					R->G[right]=MUST_TRUE;
 					break;
 				case UNTIL:
+					//not sure
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
 					R->G[right]=MUST_TRUE;
 					break;
 				case WNTIL:
+					//not sure
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
 					R->G[right]=MUST_TRUE;
-					break;
-				case NEXT:
-					R->G[i]=MUST_TRUE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
 					break;
 				case NOT:
 					R->G[i]=DONT_CARE;
@@ -492,9 +492,9 @@ void First_Guess(Computation_Tree_Node* R){
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_1;
 					R->G[left]=MUST_FALSE;
-					R->G[right]=DONT_CARE;
 					break;
 				case UNTIL:
+					//Not sure
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_1;
@@ -502,15 +502,12 @@ void First_Guess(Computation_Tree_Node* R){
 					R->G[right]=MUST_FALSE;
 					break;
 				case WNTIL:
+					//not sure
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
+					R->G[i]=FALSE_GUESSED_PHASE_1;
 					R->G[left]=MUST_FALSE;
 					R->G[right]=MUST_FALSE;
-					break;
-				case NEXT:
-					R->G[i]=MUST_FALSE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
 					break;
 				case NOT:
 					R->G[i]=DONT_CARE;
@@ -521,7 +518,7 @@ void First_Guess(Computation_Tree_Node* R){
 			}
 		}
 	}
-	cout<<"first guess:";
+	cout<<"After first guess:";
 	for(i=0;i<closure_COUNT;i++){
 		cout<<" "<<R->G[i];
 	}
@@ -529,8 +526,12 @@ void First_Guess(Computation_Tree_Node* R){
 }
 
 bool Guess(Computation_Tree_Node* R){
-	cout<<"guess:";
 	int i,j;
+	cout<<"before guess:";
+	for(i=0;i<closure_COUNT;i++){
+		cout<<" "<<R->G[i];
+	}
+	cout<<endl;
 	bool carry;
 	carry=true;
 	for(i=closure_COUNT-1;i>=0;i--){
@@ -557,12 +558,18 @@ bool Guess(Computation_Tree_Node* R){
 		cout<<"No other possibility"<<endl;
 		return false;
 	}
-/*	for(i=0;i<closure_COUNT;i++){
+	cout<<" after carry: ";
+	for(i=0;i<closure_COUNT;i++){
         cout<<R->G[i]<<" ";
 	}
 	cout<<endl;
-*/
+
 	for(i=0;i<closure_COUNT;i++){
+		cout<<" pass down "<<i<<": ";
+		for(j=0;j<closure_COUNT;j++){
+      cout<<R->G[j]<<" ";
+		}
+		cout<<endl;
 		if(R->G[i]==MUST_TRUE){
 			switch(Closure[i]->type){
 				int left,right;
@@ -570,37 +577,57 @@ bool Guess(Computation_Tree_Node* R){
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=MUST_TRUE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=MUST_TRUE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case AND:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=MUST_TRUE;
-					R->G[right]=MUST_TRUE;
+					R->G[i]=MUST_TRUE;
+					if(R->G[left]==DONT_CARE){
+						R->G[left]=MUST_TRUE;
+					}
+					if(R->G[right]==DONT_CARE){
+						R->G[right]=MUST_TRUE;
+					}
 					break;
 				case UNTIL:
+					//not sure
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
-					R->G[right]=MUST_TRUE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=MUST_TRUE;
+					}
 					break;
 				case WNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
-					R->G[right]=MUST_TRUE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=MUST_TRUE;
+					}
 					break;
 				case NEXT:
-					R->G[i]=MUST_TRUE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					if(R->obligation[find_next_closure(Closure[i]->outs[0]->index)]==DONT_CARE){
+						R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					}
 					break;
 				case NOT:
 					R->G[i]=DONT_CARE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=MUST_FALSE;
+					if(R->obligation[find_next_closure(Closure[i]->outs[0]->index)]==DONT_CARE){
+						R->G[find_next_closure(Closure[i]->outs[0]->index)]=MUST_FALSE;
+					}
 					break;
 				default:
 					R->G[i]=MUST_TRUE;
@@ -612,34 +639,51 @@ bool Guess(Computation_Tree_Node* R){
 				case OR:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=MUST_FALSE;
-					R->G[right]=MUST_FALSE;
+					R->G[i]=MUST_FALSE;
+					if(R->G[left]==DONT_CARE){
+						R->G[left]=MUST_FALSE;
+					}
+					if(R->G[right]==DONT_CARE){
+						R->G[right]=MUST_FALSE;
+					}
 					break;
 				case AND:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_1;
-					R->G[left]=MUST_FALSE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=MUST_FALSE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case UNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_1;
-					R->G[left]=MUST_FALSE;
-					R->G[right]=MUST_FALSE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=MUST_FALSE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=MUST_FALSE;
+					}
 					break;
 				case WNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_1;
-					R->G[left]=MUST_FALSE;
-					R->G[right]=MUST_FALSE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=MUST_FALSE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=MUST_FALSE;
+					}
 					break;
 				case NEXT:
-					R->G[i]=MUST_FALSE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					if(R->obligation[find_next_closure(Closure[i]->outs[0]->index)]==DONT_CARE){
+						R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					}
 					break;
 				case NOT:
 					R->G[i]=DONT_CARE;
@@ -661,13 +705,17 @@ bool Guess(Computation_Tree_Node* R){
 						R->G[left]=R->G[left];
 					}
 					else{R->G[left]=MUST_TRUE;}
-					R->G[right]=DONT_CARE;
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case UNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
 					if(R->G[right]==TRUE_GUESSED_PHASE_1 || R->G[right]==TRUE_GUESSED_PHASE_2
 					||R->G[right]==FALSE_GUESSED_PHASE_1 || R->G[right]==FALSE_GUESSED_PHASE_2){
 						R->G[right]=R->G[right];
@@ -678,7 +726,9 @@ bool Guess(Computation_Tree_Node* R){
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_1;
-					R->G[left]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
 					if(R->G[right]==TRUE_GUESSED_PHASE_1 || R->G[right]==TRUE_GUESSED_PHASE_2
 					||R->G[right]==FALSE_GUESSED_PHASE_1 || R->G[right]==FALSE_GUESSED_PHASE_2){
 						R->G[right]=R->G[right];
@@ -694,7 +744,9 @@ bool Guess(Computation_Tree_Node* R){
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=TRUE_GUESSED_PHASE_2;
-					R->G[left]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
 					if(R->G[right]==TRUE_GUESSED_PHASE_1 || R->G[right]==TRUE_GUESSED_PHASE_2
 					||R->G[right]==FALSE_GUESSED_PHASE_1 || R->G[right]==FALSE_GUESSED_PHASE_2){
 						R->G[right]=R->G[right];
@@ -710,7 +762,9 @@ bool Guess(Computation_Tree_Node* R){
 						R->G[left]=R->G[left];
 					}
 					else{R->G[left]=MUST_TRUE;}
-					R->G[right]=DONT_CARE;
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case WNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
@@ -721,7 +775,9 @@ bool Guess(Computation_Tree_Node* R){
 						R->G[left]=R->G[left];
 					}
 					else{R->G[left]=MUST_TRUE;}
-					R->G[right]=DONT_CARE;
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 			}
 		}
@@ -737,7 +793,9 @@ bool Guess(Computation_Tree_Node* R){
 						R->G[left]=R->G[left];
 					}
 					else{R->G[left]=MUST_FALSE;}
-					R->G[right]=DONT_CARE;
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case UNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
@@ -778,7 +836,9 @@ bool Guess(Computation_Tree_Node* R){
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
 					R->G[i]=FALSE_GUESSED_PHASE_2;
-					R->G[left]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
 					if(R->G[right]==TRUE_GUESSED_PHASE_1 || R->G[right]==TRUE_GUESSED_PHASE_2
 					||R->G[right]==FALSE_GUESSED_PHASE_1 || R->G[right]==FALSE_GUESSED_PHASE_2){
 						R->G[right]=R->G[right];
@@ -823,38 +883,54 @@ bool Guess(Computation_Tree_Node* R){
 				case OR:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=DONT_CARE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case AND:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=DONT_CARE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case UNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=DONT_CARE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case WNTIL:
 					left=find_next_closure(Closure[i]->outs[0]->index);
 					right=find_next_closure(Closure[i]->outs[1]->index);
-					R->G[i]=DONT_CARE;
-					R->G[left]=DONT_CARE;
-					R->G[right]=DONT_CARE;
+					if(R->obligation[left]==DONT_CARE){
+						R->G[left]=DONT_CARE;
+					}
+					if(R->obligation[right]==DONT_CARE){
+						R->G[right]=DONT_CARE;
+					}
 					break;
 				case NEXT:
 					R->G[i]=DONT_CARE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					if(R->obligation[find_next_closure(Closure[i]->outs[0]->index)]==DONT_CARE){
+						R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					}
 					break;
 				case NOT:
 					R->G[i]=DONT_CARE;
-					R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					if(R->obligation[find_next_closure(Closure[i]->outs[0]->index)]==DONT_CARE){
+						R->G[find_next_closure(Closure[i]->outs[0]->index)]=DONT_CARE;
+					}
 					break;
 				default:
 					R->G[i]=DONT_CARE;
@@ -874,6 +950,7 @@ int Check_Local(Computation_Tree_Node* R){
 	int i;
 	int check_visited_result;
 	check_visited_result=Check_Visited(R);
+
 	if(check_visited_result==PASS){
 		cout<<"check local PASS"<<endl;	
 		return PASS;
@@ -889,13 +966,13 @@ int Check_Local(Computation_Tree_Node* R){
 					int left,right;
 					case TRUE_NODE:
 						if(R->G[i]==MUST_FALSE){
-							cout<<"check local fail"<<endl;						
+							cout<<"check local fail "<<Closure[i]->index<<endl;						
 							return FAIL;
 						}
 					break;
 					case FALSE_NODE:
 						if(R->G[i]==MUST_TRUE){
-							cout<<"check local fail"<<endl;
+							cout<<"check local fail "<<Closure[i]->index<<endl;
 							return FAIL;
 						}
 					break;
@@ -904,13 +981,13 @@ int Check_Local(Computation_Tree_Node* R){
 						strcpy(aaa,Closure[i]->str.c_str());
 						if(red_and(red_diagram(aaa),R->state->red)!=red_false()){
 							if(R->G[i]==MUST_FALSE){
-								cout<<"check local fail"<<endl;	
+								cout<<"check local fail "<<Closure[i]->index<<endl;	
 								return FAIL;
 							}
 						}
 						else{
 							if(R->G[i]==MUST_TRUE){
-								cout<<"check local fail"<<endl;
+								cout<<"check local fail "<<Closure[i]->index<<endl;
 								return FAIL;
 							}
 						}

@@ -36,6 +36,7 @@ class PSIL_Game_Edge;
 #define FALSE_GUESSED_PHASE_2 5
 #define DONT_CARE 6
 
+
 #define TRUE_NODE 7
 #define FALSE_NODE 8
 #define PARSE_ROOT 9
