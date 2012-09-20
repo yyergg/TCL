@@ -8,7 +8,7 @@ lex.yy.c:PSIL.l
 	flex PSIL.l
 
 clean:
-	rm *.o *.redtab *.ir
+	rm *.o *.redtab *.ir PSIL
 
 
 
