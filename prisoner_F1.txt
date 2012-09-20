@@ -1,1 +1,0 @@
-<1>((('prisoner_confess@(2)')||(X(X(X(~('prisoner_confess@(1)'))))))W(FALSE))
