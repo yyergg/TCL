@@ -1,0 +1,1733 @@
+
++---------------------------------------------+
+| Region-Encoding Diagram Verification System |
+|                RED version 7.0              |
+| for timed systems and linear hybrid systems |
++---------------------------------------------+
+Farn Wang at EE, National Taiwan University, Taiwan, ROC.
+farn@cc.ee.ntu.edu.tw; http://cc.ee.ntu.edu.tw/~val/
+
+Verifying file STDIN against file STDIN.
+
+Output to STDOUT in BACKWARD analysis.
+
+** Untimed Systems **
+
+** Model parsing for file prisoner.d completed.
+
+****<Caution>***************
+  The following tables for model template file:
+    prisoner.d
+  of 3 processes has been written to file:
+    prisoner.d.3.redtab.
+  The tables include: 
+    1) process table, 
+    2) mode table, 
+    3) variable table, 
+    4) declared transition table, 
+    5) synchronous transition table, 
+    6) decision diagram for synchronous transitions 
+       to be executed as a whole, and 
+    7) decision diagram for the initial condition. 
+
+****<Caution>***************
+  It is highly recommended that the tables be checked
+  to make sure that there is no bugs in the model,
+  all declared transitions have been generated,
+  all synchronous transitions have been properly constructed,
+  the decision diagram for transition synchronization has 
+  been properly constructed,  
+  and the decision diagram for the initial condition has 
+  been properly constructed. 
+  It is usually difficult to get the model right in the first 
+  few construciton. 
+
+  Especially, without understanding our bulk precondition and 
+  postcondition calculation techniques reported in ICFEM 2005 
+  and Real-Time System Journal 2011, 
+  users may be unaware that some complex synchronous transitions are  
+  to be executed as a whole.  
+  Synchronous transitions are to be executed as a whole if the number
+  of parties is more than a threshold value.
+  Default threshold value is 4.  
+  The threshold value can be queried and set respectively with
+  red_query_sync_bulk_depth() and red_set_sync_bulk_depth().
+
+  If you think that your model is right, but the synchronous 
+  transition enumeration and bulk decision diagram is incorrect,  
+  please send emails to farn@cc.ee.ntu.edu.tw.  
+  We will be more than happy to discuss with you. 
+
+Starting computing reachable state set:
+12345
+1: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)
+1--7-->2
+2: counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_free@(2)&&police@(3)
+2--3-->3
+3: counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+3--9-->4
+4: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+4--5-->5
+5: counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+5--1-->3
+5--2-->6
+6: counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+6--12-->7
+7: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+7--7-->5
+7--8-->8
+8: counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_jail@(2)&&police@(3)
+8--1-->9
+9: counter_confess==1&&counter_deny==1&&turn==0&&prisoner_deny@(1)&&prisoner_confess@(2)&&police@(3)
+9--14-->10
+10: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_free@(2)&&police@(3)
+10--5-->2
+10--6-->11
+11: counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_free@(2)&&police@(3)
+11--3-->9
+11--4-->12
+12: counter_confess==0&&counter_deny==2&&turn==0&&prisoner_deny@(1)&&prisoner_deny@(2)&&police@(3)
+12--16-->13
+13: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)&&police@(3)
+13--7-->2
+13--8-->11
+8--2-->12
+4--6-->8
+2--4-->6
+1--8-->11
+DRAW DONE
+strategy2owner:
+1 
+*******    1    2    3    4    5    6    7    8    9
+   0(1)    1    1    1    1    1    1    1    1    1
+
+0
+  1
+    2
+      3
+        4
+      5
+        6
+          7
+            8
+    9
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)
+obligation:0 0 0 0 0 0 0 0 0 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:1
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:1
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:2
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:2
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=7
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=7
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=6
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=6
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=7
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=7
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=6
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=7
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=7
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=6
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=6
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=7
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=7
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=8
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=0
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:7
+token=1
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=2
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==2&&counter_deny==0&&turn==0&&prisoner_confess@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 6 0 6 6 6 6
+check local
+Check_visited of state:3
+token=3
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:4
+token=4
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==0&&turn==2&&prisoner_confess@(1)&&prisoner_jail@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:5
+token=5
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:5
+token=5
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_confess@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 6 0
+check local
+Check_visited of state:6
+token=3
+unvisited
+check local fail
+guess: 3 2 6 1 6 6 6 6 6
+check local
+Check_visited of state:6
+token=3
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success

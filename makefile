@@ -7,6 +7,8 @@ PSIL.tab.c PSIL.tab.h:PSIL.y
 lex.yy.c:PSIL.l
 	flex PSIL.l
 
+clean:
+	rm *.o *.redtab *.ir
 
 
 

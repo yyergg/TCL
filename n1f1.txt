@@ -1,0 +1,273 @@
+
++---------------------------------------------+
+| Region-Encoding Diagram Verification System |
+|                RED version 7.0              |
+| for timed systems and linear hybrid systems |
++---------------------------------------------+
+Farn Wang at EE, National Taiwan University, Taiwan, ROC.
+farn@cc.ee.ntu.edu.tw; http://cc.ee.ntu.edu.tw/~val/
+
+Verifying file STDIN against file STDIN.
+
+Output to STDOUT in BACKWARD analysis.
+
+** Untimed Systems **
+
+** Model parsing for file prisoner_n1.d completed.
+
+****<Caution>***************
+  The following tables for model template file:
+    prisoner_n1.d
+  of 3 processes has been written to file:
+    prisoner_n1.d.3.redtab.
+  The tables include: 
+    1) process table, 
+    2) mode table, 
+    3) variable table, 
+    4) declared transition table, 
+    5) synchronous transition table, 
+    6) decision diagram for synchronous transitions 
+       to be executed as a whole, and 
+    7) decision diagram for the initial condition. 
+
+****<Caution>***************
+  It is highly recommended that the tables be checked
+  to make sure that there is no bugs in the model,
+  all declared transitions have been generated,
+  all synchronous transitions have been properly constructed,
+  the decision diagram for transition synchronization has 
+  been properly constructed,  
+  and the decision diagram for the initial condition has 
+  been properly constructed. 
+  It is usually difficult to get the model right in the first 
+  few construciton. 
+
+  Especially, without understanding our bulk precondition and 
+  postcondition calculation techniques reported in ICFEM 2005 
+  and Real-Time System Journal 2011, 
+  users may be unaware that some complex synchronous transitions are  
+  to be executed as a whole.  
+  Synchronous transitions are to be executed as a whole if the number
+  of parties is more than a threshold value.
+  Default threshold value is 4.  
+  The threshold value can be queried and set respectively with
+  red_query_sync_bulk_depth() and red_set_sync_bulk_depth().
+
+  If you think that your model is right, but the synchronous 
+  transition enumeration and bulk decision diagram is incorrect,  
+  please send emails to farn@cc.ee.ntu.edu.tw.  
+  We will be more than happy to discuss with you. 
+
+Starting computing reachable state set:
+1234
+1: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)
+1--6-->2
+2: counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_free@(2)&&police@(3)
+2--3-->3
+3: counter_confess==1&&counter_deny==1&&turn==0&&prisoner_deny@(1)&&prisoner_confess@(2)&&police@(3)
+3--8-->4
+4: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_free@(2)&&police@(3)
+4--5-->2
+2--4-->5
+5: counter_confess==0&&counter_deny==2&&turn==0&&prisoner_deny@(1)&&prisoner_deny@(2)&&police@(3)
+5--10-->6
+6: counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)&&police@(3)
+6--6-->2
+DRAW DONE
+strategy2owner:
+1 
+*******    1    2    3    4    5    6    7    8
+   0(1)    1    1    1    1    1    1    1    1
+
+0
+  1
+    2
+      3
+      4
+        5
+          6
+            7
+    8
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)
+obligation:0 0 0 0 0 0 0 0 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(1,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(1,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(1,0)
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/2
+check PSIL on:counter_confess==1&&counter_deny==1&&turn==0&&prisoner_deny@(1)&&prisoner_confess@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(3,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(3,0)
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_jail@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(4,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(4,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(4,0)
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+check child 2/2
+check PSIL on:counter_confess==0&&counter_deny==2&&turn==0&&prisoner_deny@(1)&&prisoner_deny@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(5,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(5,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(5,0)
+unvisited
+check local continue
+create pass down:
+closure 0 uncontrolled
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==0&&turn==1&&prisoner_free@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(6,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(6,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(6,0)
+unvisited
+check local continue
+create pass down:
+closure 0 controlled by strategy 0 of player 1
+pass down created:0 6 6 6 6 6 6 6 
+check child 1/1
+check PSIL on:counter_confess==0&&counter_deny==1&&turn==2&&prisoner_deny@(1)&&prisoner_free@(2)&&police@(3)
+obligation:0 6 6 6 6 6 6 6 
+first guess: 2 6 6 6 6 6 6 0
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess: 3 2 0 6 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+unvisited
+check local fail
+guess_fail
+guess: 3 3 6 0 6 6 6 6
+check local
+Check_visited(state,token):(2,0)
+visited and pass
+check local PASS
+Check_PSIL true
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
+create pass down:
+nothing to pass down
+guess success
