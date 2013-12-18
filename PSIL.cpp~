@@ -371,7 +371,7 @@ void labelPlayerSelectionOnEdge(PSIL_Game_Node* root){
 void printGameGraph(){
 	int i,j,k;
 	for(i=0;i<Nodes.size();i++){
-		cout<<i<<": "<<red_diagram_string(Nodes[i]->red)<<endl;
+		cout<<red_diagram_string(Nodes[i]->red)<<endl;
 		for(j=0;j<Nodes[i]->outs.size();j++){
 			cout<<"[";
 			for(k=0;k<Nodes[i]->outs[j]->selectionArray.size();k++){

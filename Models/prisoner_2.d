@@ -1,13 +1,11 @@
 #define Prisoner_Count 2
 process count=Prisoner_Count+1;
 
-
 global discrete
 	counter_confess,
 	counter_deny:0..Prisoner_Count;
 global discrete
 	turn:0..Prisoner_Count;
-
 
 global synchronizer ask,judge;
 

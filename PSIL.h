@@ -1,4 +1,4 @@
-#ifndef PSIL_H
+﻿#ifndef PSIL_H
 #define PSIL_H
 #include<iostream>
 #include<fstream>
@@ -65,9 +65,9 @@ class Computation_Tree_Node{
 		vector<Computation_Tree_Node*> outs;
 		int until_token_old;
 		int until_token;
-		int* G;
+		int* guessedSolution;
 		int* obligation;
-		int* pass_down;
+		int* passDown;
 		bool* passed;
 		PSIL_Game_Node* state;
 };
@@ -92,14 +92,13 @@ class PSIL_Game_Node{
 	public:
 	int index;
 	redgram red;
-	int owner;
 	vector<PSIL_Game_Edge*> outs;
 	vector<PSIL_Game_Edge*> ins;
 };
 
 class PSIL_Game_Edge{
 	public:
-	int sxi;
+	vector<int> selectionArray;
 	PSIL_Game_Node* src;
 	PSIL_Game_Node* dst;
 };

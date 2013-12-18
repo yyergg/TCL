@@ -30,7 +30,7 @@ using namespace std;
 X         			{ cout << "Found a NEXT:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_NEXT;}
 U         			{ cout << "Found a UNTIL:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_UNTIL;}
 W         			{ cout << "Found a WNTIL:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_WNTIL;}
-"'"[A-Za-z0-9\_\(\)\@]+"'" { cout << "Found an ATOMIC:" << yytext << endl; 
+"'"[A-Za-z0-9\_\(\)\@\=]+"'" { cout << "Found an ATOMIC:" << yytext << endl; 
 														 yylval.ptr=new PSIL_Formula; 
 														 string ss(yytext);
 														 ss.erase (ss.begin(), ss.begin()+1);
