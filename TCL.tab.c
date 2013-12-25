@@ -63,13 +63,13 @@
 
 /* Copy the first part of user declarations.  */
 /* Line 371 of yacc.c  */
-#line 1 "PSIL.y"
+#line 1 "TCL.y"
 
-#include "PSIL.h"
+#include "TCL.h"
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
-extern PSIL_Formula* ROOT_ptr;
+extern TCL_Formula* ROOT_ptr;
 
 
 
@@ -80,7 +80,7 @@ void yyerror(const char *s) {
 }
 
 /* Line 371 of yacc.c  */
-#line 84 "PSIL.tab.c"
+#line 84 "TCL.tab.c"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -99,9 +99,9 @@ void yyerror(const char *s) {
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "PSIL.tab.h".  */
-#ifndef YY_YY_PSIL_TAB_H_INCLUDED
-# define YY_YY_PSIL_TAB_H_INCLUDED
+   by #include "TCL.tab.h".  */
+#ifndef YY_YY_TCL_TAB_H_INCLUDED
+# define YY_YY_TCL_TAB_H_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -138,13 +138,13 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 387 of yacc.c  */
-#line 17 "PSIL.y"
+#line 17 "TCL.y"
 
-	PSIL_Formula* ptr;
+	TCL_Formula* ptr;
 
 
 /* Line 387 of yacc.c  */
-#line 148 "PSIL.tab.c"
+#line 148 "TCL.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -167,12 +167,12 @@ int yyparse ();
 #endif
 #endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_YY_PSIL_TAB_H_INCLUDED  */
+#endif /* !YY_YY_TCL_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 176 "PSIL.tab.c"
+#line 176 "TCL.tab.c"
 
 #ifdef short
 # undef short
@@ -1382,7 +1382,7 @@ yyreduce:
     {
         case 2:
 /* Line 1787 of yacc.c  */
-#line 39 "PSIL.y"
+#line 39 "TCL.y"
     {
 								(yyvsp[(1) - (4)].ptr)->type=PARSE_ROOT;
 								(yyvsp[(1) - (4)].ptr)->outs.push_back((yyvsp[(3) - (4)].ptr));
@@ -1393,7 +1393,7 @@ yyreduce:
 
   case 3:
 /* Line 1787 of yacc.c  */
-#line 50 "PSIL.y"
+#line 50 "TCL.y"
     {
 							(yyvsp[(1) - (4)].ptr)->type=PLUS;
 							(yyvsp[(1) - (4)].ptr)->outs.push_back((yyvsp[(3) - (4)].ptr));
@@ -1404,7 +1404,7 @@ yyreduce:
 
   case 4:
 /* Line 1787 of yacc.c  */
-#line 56 "PSIL.y"
+#line 56 "TCL.y"
     {
 							(yyvsp[(1) - (4)].ptr)->type=MINUS;
 							(yyvsp[(1) - (4)].ptr)->outs.push_back((yyvsp[(3) - (4)].ptr));
@@ -1415,13 +1415,13 @@ yyreduce:
 
   case 5:
 /* Line 1787 of yacc.c  */
-#line 62 "PSIL.y"
+#line 62 "TCL.y"
     {(yyval.ptr)=(yyvsp[(2) - (3)].ptr);}
     break;
 
   case 6:
 /* Line 1787 of yacc.c  */
-#line 63 "PSIL.y"
+#line 63 "TCL.y"
     {
     	(yyvsp[(4) - (7)].ptr)->type=AND;
     	(yyvsp[(4) - (7)].ptr)->outs.push_back((yyvsp[(2) - (7)].ptr));
@@ -1434,7 +1434,7 @@ yyreduce:
 
   case 7:
 /* Line 1787 of yacc.c  */
-#line 71 "PSIL.y"
+#line 71 "TCL.y"
     {
     	(yyvsp[(4) - (7)].ptr)->type=OR;
     	(yyvsp[(4) - (7)].ptr)->outs.push_back((yyvsp[(2) - (7)].ptr));
@@ -1447,7 +1447,7 @@ yyreduce:
 
   case 8:
 /* Line 1787 of yacc.c  */
-#line 80 "PSIL.y"
+#line 80 "TCL.y"
     {
     	(yyvsp[(4) - (7)].ptr)->type=UNTIL;
     	(yyvsp[(4) - (7)].ptr)->outs.push_back((yyvsp[(2) - (7)].ptr));
@@ -1460,7 +1460,7 @@ yyreduce:
 
   case 9:
 /* Line 1787 of yacc.c  */
-#line 88 "PSIL.y"
+#line 88 "TCL.y"
     {
     	(yyvsp[(4) - (7)].ptr)->type=WNTIL;
     	(yyvsp[(4) - (7)].ptr)->outs.push_back((yyvsp[(2) - (7)].ptr));
@@ -1473,7 +1473,7 @@ yyreduce:
 
   case 10:
 /* Line 1787 of yacc.c  */
-#line 96 "PSIL.y"
+#line 96 "TCL.y"
     {
 			(yyvsp[(1) - (4)].ptr)->type=NEXT;
 			(yyvsp[(1) - (4)].ptr)->outs.push_back((yyvsp[(3) - (4)].ptr));
@@ -1484,7 +1484,7 @@ yyreduce:
 
   case 11:
 /* Line 1787 of yacc.c  */
-#line 102 "PSIL.y"
+#line 102 "TCL.y"
     {
 			(yyvsp[(1) - (4)].ptr)->type=NOT;
 			(yyvsp[(1) - (4)].ptr)->outs.push_back((yyvsp[(3) - (4)].ptr));
@@ -1495,7 +1495,7 @@ yyreduce:
 
   case 12:
 /* Line 1787 of yacc.c  */
-#line 108 "PSIL.y"
+#line 108 "TCL.y"
     {
 			(yyvsp[(1) - (1)].ptr)->type=TRUE_NODE;
 			(yyval.ptr)=(yyvsp[(1) - (1)].ptr);
@@ -1504,7 +1504,7 @@ yyreduce:
 
   case 13:
 /* Line 1787 of yacc.c  */
-#line 112 "PSIL.y"
+#line 112 "TCL.y"
     {
 			(yyvsp[(1) - (1)].ptr)->type=FALSE_NODE;
 			(yyval.ptr)=(yyvsp[(1) - (1)].ptr);
@@ -1513,7 +1513,7 @@ yyreduce:
 
   case 14:
 /* Line 1787 of yacc.c  */
-#line 116 "PSIL.y"
+#line 116 "TCL.y"
     {
     	(yyvsp[(1) - (1)].ptr)->type=ATOMIC;
     	(yyval.ptr)=(yyvsp[(1) - (1)].ptr);    
@@ -1522,7 +1522,7 @@ yyreduce:
 
 
 /* Line 1787 of yacc.c  */
-#line 1526 "PSIL.tab.c"
+#line 1526 "TCL.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1754,7 +1754,7 @@ yyreturn:
 
 
 /* Line 2050 of yacc.c  */
-#line 123 "PSIL.y"
+#line 123 "TCL.y"
 
 
 

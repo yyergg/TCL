@@ -478,10 +478,10 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "PSIL.l"
-#line 2 "PSIL.l"
-#include "PSIL.h"
-#include "PSIL.tab.h"
+#line 1 "TCL.l"
+#line 2 "TCL.l"
+#include "TCL.h"
+#include "TCL.tab.h"
 using namespace std;
 #define YY_DECL extern "C" int yylex()
 #line 488 "lex.yy.c"
@@ -671,7 +671,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 7 "PSIL.l"
+#line 7 "TCL.l"
 
 #line 677 "lex.yy.c"
 
@@ -759,14 +759,14 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 8 "PSIL.l"
+#line 8 "TCL.l"
 ;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 9 "PSIL.l"
+#line 9 "TCL.l"
 { cout << "Found a root:" << yytext << endl; 
-									yylval.ptr=new PSIL_Formula;
+									yylval.ptr=new TCL_Formula;
 									int i;
 									sscanf (yytext,"<%d>",&i);
 									yylval.ptr->owner=i;
@@ -775,9 +775,9 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 16 "PSIL.l"
+#line 16 "TCL.l"
 { cout << "Found a PLUS:" << yytext << endl; 
-									yylval.ptr=new PSIL_Formula;
+									yylval.ptr=new TCL_Formula;
 									int i;
 									sscanf (yytext,"<+%d>",&i);
 									yylval.ptr->owner=i;
@@ -786,9 +786,9 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 23 "PSIL.l"
+#line 23 "TCL.l"
 { cout << "Found a MINUS:" << yytext << endl; 
-									yylval.ptr=new PSIL_Formula;
+									yylval.ptr=new TCL_Formula;
 									int i;
 									sscanf (yytext,"<-%d>",&i);
 									yylval.ptr->owner=i;
@@ -797,24 +797,24 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 30 "PSIL.l"
-{ cout << "Found a NEXT:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_NEXT;}
+#line 30 "TCL.l"
+{ cout << "Found a NEXT:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_NEXT;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 31 "PSIL.l"
-{ cout << "Found a UNTIL:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_UNTIL;}
+#line 31 "TCL.l"
+{ cout << "Found a UNTIL:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_UNTIL;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 32 "PSIL.l"
-{ cout << "Found a WNTIL:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_WNTIL;}
+#line 32 "TCL.l"
+{ cout << "Found a WNTIL:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_WNTIL;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 33 "PSIL.l"
+#line 33 "TCL.l"
 { cout << "Found an ATOMIC:" << yytext << endl; 
-														 yylval.ptr=new PSIL_Formula; 
+														 yylval.ptr=new TCL_Formula; 
 														 string ss(yytext);
 														 ss.erase (ss.begin(), ss.begin()+1);
 														 ss.erase (ss.end()-1, ss.end());
@@ -824,47 +824,47 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 41 "PSIL.l"
-{ cout << "Found a TRUE:" << yytext << endl; yylval.ptr=new PSIL_Formula;  return TOKEN_TRUE;}
+#line 41 "TCL.l"
+{ cout << "Found a TRUE:" << yytext << endl; yylval.ptr=new TCL_Formula;  return TOKEN_TRUE;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 42 "PSIL.l"
-{ cout << "Found a FALSE:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_FALSE;}
+#line 42 "TCL.l"
+{ cout << "Found a FALSE:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_FALSE;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 43 "PSIL.l"
-{ cout << "Found a AND:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_AND;}
+#line 43 "TCL.l"
+{ cout << "Found a AND:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_AND;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 44 "PSIL.l"
-{	cout << "Found a OR:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_OR;}
+#line 44 "TCL.l"
+{	cout << "Found a OR:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_OR;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 45 "PSIL.l"
-{	cout << "Found a NOT:" << yytext << endl; yylval.ptr=new PSIL_Formula; return TOKEN_NOT;}
+#line 45 "TCL.l"
+{	cout << "Found a NOT:" << yytext << endl; yylval.ptr=new TCL_Formula; return TOKEN_NOT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 46 "PSIL.l"
+#line 46 "TCL.l"
 { cout << "Found a left bracket"<<endl; return TOKEN_LEFT;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 47 "PSIL.l"
+#line 47 "TCL.l"
 { cout << "Found a right bracket"<<endl; return TOKEN_RIGHT;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 48 "PSIL.l"
+#line 48 "TCL.l"
 ;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 49 "PSIL.l"
+#line 49 "TCL.l"
 ECHO;
 	YY_BREAK
 #line 871 "lex.yy.c"
@@ -1865,7 +1865,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 49 "PSIL.l"
+#line 49 "TCL.l"
 
 
 

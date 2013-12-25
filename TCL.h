@@ -1,5 +1,5 @@
-﻿#ifndef PSIL_H
-#define PSIL_H
+﻿#ifndef TCL_H
+#define TCL_H
 #include<iostream>
 #include<fstream>
 #include<stdlib.h>
@@ -21,9 +21,9 @@ extern "C"{
 
 
 class Computation_Tree_Node;
-class PSIL_Formula;
-class PSIL_Game_Node;
-class PSIL_Game_Edge;
+class TCL_Formula;
+class TCL_Game_Node;
+class TCL_Game_Edge;
 
 
 
@@ -69,14 +69,14 @@ class Computation_Tree_Node{
 		int* obligation;
 		int* passDown;
 		bool* passed;
-		PSIL_Game_Node* state;
+		TCL_Game_Node* state;
 };
 
 
 
 
 
-class PSIL_Formula{
+class TCL_Formula{
 	public:
 	int type;
 	int index;
@@ -84,23 +84,23 @@ class PSIL_Formula{
 	int closure_index;
 	string str;
 	int owner;
-	vector<PSIL_Formula*> ins;
-	vector<PSIL_Formula*> outs;
+	vector<TCL_Formula*> ins;
+	vector<TCL_Formula*> outs;
 };
 
-class PSIL_Game_Node{
+class TCL_Game_Node{
 	public:
 	int index;
 	redgram red;
-	vector<PSIL_Game_Edge*> outs;
-	vector<PSIL_Game_Edge*> ins;
+	vector<TCL_Game_Edge*> outs;
+	vector<TCL_Game_Edge*> ins;
 };
 
-class PSIL_Game_Edge{
+class TCL_Game_Edge{
 	public:
 	vector<int> selectionArray;
-	PSIL_Game_Node* src;
-	PSIL_Game_Node* dst;
+	TCL_Game_Node* src;
+	TCL_Game_Node* dst;
 };
 
 

@@ -1,11 +1,13 @@
-﻿#include "PSIL.h"
-
+﻿#include "TCL.h"
+#include "debug.h"
 /*extern function from parser*/
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
 
 //Global variables
+bool debugCheckTCL=false;
+
 int sxiCount;
 int nodeCount;
 int strategyCount;
@@ -13,18 +15,18 @@ int closureCount;
 int parseCount;
 
 redgram path;
-PSIL_Game_Edge* temp_edge;
-PSIL_Game_Node* temp_node;
+TCL_Game_Edge* temp_edge;
+TCL_Game_Node* temp_node;
 string temp_string;
 char temp_char[1000];
 map<string,int> node_map;
 map<int,string> type_map;
-vector<PSIL_Game_Node*> Nodes;
-vector<PSIL_Formula*> Parse_Tree;
-vector<PSIL_Formula*> Closure;
+vector<TCL_Game_Node*> Nodes;
+vector<TCL_Formula*> Parse_Tree;
+vector<TCL_Formula*> Closure;
 vector<int> strategy2owner;
 
-PSIL_Formula* ROOT_ptr;
+TCL_Formula* ROOT_ptr;
 
 int ** Matrix;
 int* strategy_stack;
@@ -61,9 +63,7 @@ int	cplugin_proc(int module_index,int	proc_index) {
     exit(0);
   }
 }
-
-
-
+//redundant function to meet RED requirement
 
 Computation_Tree_Node::Computation_Tree_Node(){
 	int i;
@@ -81,6 +81,7 @@ Computation_Tree_Node::Computation_Tree_Node(){
 	}
 }
 
+
 Computation_Tree_Node::~Computation_Tree_Node(){
 	delete guessedSolution;
 	delete obligation;
@@ -89,24 +90,7 @@ Computation_Tree_Node::~Computation_Tree_Node(){
 }
 
 
-
-
-
-void print_parse_tree(PSIL_Formula* F, int depth){
-	int i;
-	for(i=0;i<depth;i++){
-		cout<<"  ";
-	}
-	cout<<F->index<<" "<<type_map[F->type]<<" ";
-	if(F->type==ATOMIC){cout<<F->str;}
-	else if(F->type==PARSE_ROOT || F->type==PLUS){cout<<F->owner;}
-	cout<<endl;
-	for(i=0;i<F->outs.size();i++){
-		print_parse_tree(F->outs[i],depth+1);
-	}
-}
-
-void Setup_PSIL_Formula(PSIL_Formula* F){
+void Setup_TCL_Formula(TCL_Formula* F){
 	int i;
 	Parse_Tree.push_back(F);
 	if(F->type==PARSE_ROOT || F->type==PLUS){
@@ -117,7 +101,7 @@ void Setup_PSIL_Formula(PSIL_Formula* F){
 		strategyCount++;
 		F->closure_index=0;
 		for(i=0;i<F->outs.size();i++){
-			Setup_PSIL_Formula(F->outs[i]);
+			Setup_TCL_Formula(F->outs[i]);
 		}
 	}
 	else if(F->type==MINUS){
@@ -126,7 +110,7 @@ void Setup_PSIL_Formula(PSIL_Formula* F){
 		F->strategy_index=-1;
 		F->closure_index=0;
 		for(i=0;i<F->outs.size();i++){
-			Setup_PSIL_Formula(F->outs[i]);
+			Setup_TCL_Formula(F->outs[i]);
 		}
 	}
 	else if(F->type==ATOMIC){
@@ -137,7 +121,7 @@ void Setup_PSIL_Formula(PSIL_Formula* F){
 		closureCount++;
 		F->strategy_index=0;
 		for(i=0;i<F->outs.size();i++){
-			Setup_PSIL_Formula(F->outs[i]);
+			Setup_TCL_Formula(F->outs[i]);
 		}
 	}
 	else{
@@ -148,12 +132,13 @@ void Setup_PSIL_Formula(PSIL_Formula* F){
 		closureCount++;
 		F->strategy_index=0;
 		for(i=0;i<F->outs.size();i++){
-			Setup_PSIL_Formula(F->outs[i]);
+			Setup_TCL_Formula(F->outs[i]);
 		}
 	}
 }
 
-void fill_in_matrix(PSIL_Formula* F){
+
+void fill_in_matrix(TCL_Formula* F){
 	int i;
 	switch(F->type){
 		case TRUE_NODE:
@@ -247,8 +232,6 @@ void fill_in_matrix(PSIL_Formula* F){
 }
 
 
-
-
 int findNextClosure(int x){
 	if(Parse_Tree[x]->type==PARSE_ROOT || Parse_Tree[x]->type==PLUS || Parse_Tree[x]->type==MINUS){
 		return findNextClosure(Parse_Tree[x]->outs[0]->index);
@@ -257,7 +240,7 @@ int findNextClosure(int x){
 }
 
 
-void setup_matrix(){
+void setupMatrix(){
 	int i,j;
 	Matrix=new int*[strategyCount];
 	for(i=0;i<strategyCount;i++){
@@ -275,36 +258,8 @@ void setup_matrix(){
 	}
 }
 
-void print_matrix(){
-	int i,j;
-	cout<<setw(7)<<"*******";
-	for(i=0;i<closureCount;i++){
-		cout<<setw(5)<<Closure[i]->index;
-	}
-	cout<<endl;
-	for(i=0;i<strategyCount;i++){
-		string temp_string;
-		stringstream ss(temp_string);
-		ss<<i<<"("<<strategy2owner[i]<<")";
-		cout<<setw(7)<<ss.str();
-		for(j=0;j<closureCount;j++){
-			cout<<setw(5)<<Matrix[i][j];
-		}
-		cout<<endl;
-	}
-	cout<<endl;
-}
 
-void print_strategy2owner(){
-	int i;
-	cout<<"strategy2owner:"<<endl;
-	for(i=0;i<strategy2owner.size();i++){
-		cout<<strategy2owner[i]<<" ";
-	}
-	cout<<endl;
-}
-
-void extractModelFromFile(PSIL_Game_Node* root){
+void extractModelFromFile(TCL_Game_Node* root){
 //	cout<<root->index<<": "<<red_diagram_string(root->red)<<endl;
 	int i;
 	for(i=1;i<sxiCount;i++){
@@ -324,8 +279,8 @@ void extractModelFromFile(PSIL_Game_Node* root){
 			0);
 		if(red_and(temp_red,red_query_diagram_enhanced_global_invariance())!=red_false()){
 			if(node_map[temp_string.assign(red_diagram_string(temp_red))]==0){
-				temp_edge=new PSIL_Game_Edge;
-				temp_node=new PSIL_Game_Node;
+				temp_edge=new TCL_Game_Edge;
+				temp_node=new TCL_Game_Node;
 				temp_edge->src=root;
 				temp_edge->dst=temp_node;
 				root->outs.push_back(temp_edge);
@@ -339,7 +294,7 @@ void extractModelFromFile(PSIL_Game_Node* root){
 			}
 			else{
 				temp_node=Nodes[node_map[temp_string.assign(red_diagram_string(temp_red))]];
-				temp_edge=new PSIL_Game_Edge;
+				temp_edge=new TCL_Game_Edge;
 				temp_edge->src=root;
 				temp_edge->dst=temp_node;
 				root->outs.push_back(temp_edge);
@@ -350,7 +305,8 @@ void extractModelFromFile(PSIL_Game_Node* root){
 	}
 }
 
-void labelPlayerSelectionOnEdge(PSIL_Game_Node* root){
+
+void labelPlayerSelectionOnEdge(TCL_Game_Node* root){
 	int lb,hb;
 	vector<string> selectionName;
 	selectionName.push_back("p1_choose");
@@ -368,20 +324,6 @@ void labelPlayerSelectionOnEdge(PSIL_Game_Node* root){
 	}
 }
 
-void printGameGraph(){
-	int i,j,k;
-	for(i=0;i<Nodes.size();i++){
-		cout<<i<<": "<<red_diagram_string(Nodes[i]->red)<<endl;
-		for(j=0;j<Nodes[i]->outs.size();j++){
-			cout<<"[";
-			for(k=0;k<Nodes[i]->outs[j]->selectionArray.size();k++){
-				cout<<Nodes[i]->outs[j]->selectionArray[k];
-				if(k<Nodes[i]->outs[j]->selectionArray.size()-1){cout<<",";}
-			}
-			cout<<"]-->"<<red_diagram_string(Nodes[Nodes[i]->outs[j]->dst->index]->red)<<endl;
-		}
-	}
-}
 
 bool check_parent(int a,int b){
 	if(a==b){return true;}
@@ -403,8 +345,7 @@ bool check_parent(int a,int b){
 }
 
 
-
-int Check_Visited(Computation_Tree_Node* R){
+int checkVisited(Computation_Tree_Node* R){
 	cout<<"check visited"<<endl;
 	int i;
 	if(R->until_token_old==0){
@@ -423,7 +364,7 @@ int Check_Visited(Computation_Tree_Node* R){
 		}
 	}
 
-	cout<<"Check_visited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
+	cout<<"checkVisited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
 	
 	
 	Computation_Tree_Node* ancestor;
@@ -458,6 +399,7 @@ int Check_Visited(Computation_Tree_Node* R){
 	cout<<"unvisited"<<endl;
 	return UNVISITED;
 }
+
 
 void guessFirstPossibleSolution(Computation_Tree_Node* R){
 	int i,j;
@@ -550,6 +492,7 @@ void guessFirstPossibleSolution(Computation_Tree_Node* R){
 	}
 	cout<<endl;
 }
+
 
 bool Guess(Computation_Tree_Node* R){
 	int i,j;
@@ -971,17 +914,17 @@ bool Guess(Computation_Tree_Node* R){
 }
 
 
-int Check_Local(Computation_Tree_Node* R){
+int checkLocalUnSAT(Computation_Tree_Node* R){
 	cout<<"check local"<<endl;
 	int i;
-	int check_visited_result;
-	check_visited_result=Check_Visited(R);
+	int checkVisitedResult;
+	checkVisitedResult=checkVisited(R);
 
-	if(check_visited_result==PASS){
+	if(checkVisitedResult==PASS){
 		cout<<"check local PASS"<<endl;	
 		return PASS;
 	}
-	else if(check_visited_result==FAIL){
+	else if(checkVisitedResult==FAIL){
 		cout<<"check local fail"<<endl;			
 		return FAIL;
 	}
@@ -1025,6 +968,7 @@ int Check_Local(Computation_Tree_Node* R){
 		return CONTINUE;
 	}
 }
+
 
 bool Create_passDown(Computation_Tree_Node* R,bool &controlled){
 /*	cout<<"create pass down:"<<endl;
@@ -1129,9 +1073,9 @@ bool Create_passDown(Computation_Tree_Node* R,bool &controlled){
 }
 
 
-bool Check_PSIL(Computation_Tree_Node* R){
+bool Check_TCL(Computation_Tree_Node* R){
 	int i,j;
-	int local_result;	
+	int localCheckResult;	
 	cout<<"check TCL on: "<<red_diagram_string(R->state->red)<<endl;
 	cout<<"obligation: ";
 	for(i=0;i<closureCount;i++){
@@ -1139,20 +1083,23 @@ bool Check_PSIL(Computation_Tree_Node* R){
 	}
 	cout<<endl;
 	guessFirstPossibleSolution(R);
-	local_result=Check_Local(R);
+	localCheckResult=checkLocalUnSAT(R);
 	
-/*	if(local_result==PASS){
-		cout<<"Check_PSIL true"<<endl;
+	if(localCheckResult==PASS){
+		if(debugCheckTCL){
+			cout<<"checkTCL PASS(local)"<<endl;
+		}
 		return true;
 	}
-	else if(local_result==FAIL){
+	/*
+	else if(localCheckResult==FAIL){
 		while(Guess(R)){
-			local_result=Check_Local(R);
-			if(local_result==PASS){
-				cout<<"Check_PSIL true"<<endl;
+			localCheckResult=checkLocalUnSAT(R);
+			if(localCheckResult==PASS){
+				cout<<"Check_TCL true"<<endl;
 				return true;
 			}			
-			else if(local_result==CONTINUE){
+			else if(localCheckResult==CONTINUE){
 				for(i=0;i<closureCount;i++){
 					R->passed[i]=false;
 				}
@@ -1174,13 +1121,13 @@ bool Check_PSIL(Computation_Tree_Node* R){
 	            }
 	            R2->until_token_old=R->until_token;
 	            if(controlled){
-		            if(Check_PSIL(R2)){
+		            if(Check_TCL(R2)){
 	                guess_fail=false;
 	                passDown_success=true;
 		            }
 	            } 
 	            else{
-	              if(!Check_PSIL(R2)){
+	              if(!Check_TCL(R2)){
 	                guess_fail=true;
 	                cout<<"guess_fail"<<endl;
 	              }
@@ -1199,7 +1146,7 @@ bool Check_PSIL(Computation_Tree_Node* R){
       }
 		}
 	}
-	else if(local_result==CONTINUE){
+	else if(localCheckResult==CONTINUE){
 		for(i=0;i<closureCount;i++){
 			R->passed[i]=false;
 		}
@@ -1221,13 +1168,13 @@ bool Check_PSIL(Computation_Tree_Node* R){
           }
          	R2->until_token_old=R->until_token;
           if(controlled){
-            if(Check_PSIL(R2)){
+            if(Check_TCL(R2)){
               guess_fail=false;
               passDown_success=true;
             }
           }
           else{
-            if(!Check_PSIL(R2)){
+            if(!Check_TCL(R2)){
               guess_fail=true;
               cout<<"guess_fail"<<endl;
             }
@@ -1243,12 +1190,12 @@ bool Check_PSIL(Computation_Tree_Node* R){
     else{
 	    guess_fail=false;
       while(Guess(R)){
-				local_result=Check_Local(R);
-				if(local_result==PASS){
-					cout<<"Check_PSIL true"<<endl;
+				localCheckResult=checkLocalUnSAT(R);
+				if(localCheckResult==PASS){
+					cout<<"Check_TCL true"<<endl;
 					return true;
 				}			
-				else if(local_result==CONTINUE){
+				else if(localCheckResult==CONTINUE){
 					for(i=0;i<closureCount;i++){
 						R->passed[i]=false;
 					}
@@ -1268,13 +1215,13 @@ bool Check_PSIL(Computation_Tree_Node* R){
 			          }
 	            	R2->until_token_old=R->until_token;
 			          if(controlled){
-			            if(Check_PSIL(R2)){
+			            if(Check_TCL(R2)){
 			              guess_fail=false;
 			              passDown_success=true;
 			            }
 			          }
 			          else{
-			            if(!Check_PSIL(R2)){
+			            if(!Check_TCL(R2)){
 			              guess_fail=true;
 			              cout<<"guess_fail"<<endl;
 			            }
@@ -1296,7 +1243,6 @@ bool Check_PSIL(Computation_Tree_Node* R){
 	}
 	*/
 }
-
 
 
 int main(int argc,char** argv) {
@@ -1323,15 +1269,12 @@ int main(int argc,char** argv) {
 	//Initial global variables
 
 	red_begin_session(RED_SYSTEM_TIMED, argv[1], -1);	
-	//-1 == default(process number)
+		//-1 == default(process number)
 	red_input_model(argv[1], RED_REFINE_GLOBAL_INVARIANCE);
 	red_set_sync_bulk_depth(10); 
-	//number of transitions can be involve into a synchronize transition
-	
-	//Read in the model
-
-	PSIL_Game_Node* root;
-	root=new PSIL_Game_Node;
+		//number of transitions can be involve into a synchronize transition
+	TCL_Game_Node* root;
+	root=new TCL_Game_Node;
 	root->index= nodeCount;
 	root->red=red_query_diagram_initial();	
 	//Initial root for the model
@@ -1339,30 +1282,26 @@ int main(int argc,char** argv) {
 	Nodes.push_back(root);	nodeCount++;
 	node_map[temp_string.assign(red_diagram_string(root->red))]=root->index;
 	//Add root into list
-	
-	
+		
 	path=red_query_diagram_enhanced_global_invariance();
 	sxiCount=red_query_sync_xtion_count(RED_USE_DECLARED_SYNC_XTION); 
 	//number of synchronize transitions in the model
 	
-	//Initial variables
-
 	cout<<endl;
 	extractModelFromFile(root);
 	labelPlayerSelectionOnEdge(root);
 	printGameGraph();
 	//Draw the graph
 
-	
 	if(argc>2){
 		FILE *infile = fopen(argv[2], "r");
 		yyin=infile;
 		do {
 			yyparse();
 		} while (!feof(yyin));
-		Setup_PSIL_Formula(ROOT_ptr);
+		Setup_TCL_Formula(ROOT_ptr);
 		print_strategy2owner();
-		setup_matrix();
+		setupMatrix();
 		fill_in_matrix(Parse_Tree[0]);
 		print_matrix();
 		print_parse_tree(Parse_Tree[0],0);
@@ -1383,9 +1322,9 @@ int main(int argc,char** argv) {
 	R->obligation[0]=MUST_TRUE;
 	//Initialize computation tree
 
-
-	Check_PSIL(R);
-
+	Check_TCL(R);
+	//BJ4
+	
 	return 0;
 }
 

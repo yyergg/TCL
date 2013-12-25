@@ -1,9 +1,9 @@
 %{
-#include "PSIL.h"
+#include "TCL.h"
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
-extern PSIL_Formula* ROOT_ptr;
+extern TCL_Formula* ROOT_ptr;
 
 
 
@@ -15,7 +15,7 @@ void yyerror(const char *s) {
 %}
 
 %union {
-	PSIL_Formula* ptr;
+	TCL_Formula* ptr;
 }
 
 %token <ptr> TOKEN_ROOT
