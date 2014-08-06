@@ -98,7 +98,7 @@ class TCL_Game_Node{
 
 class TCL_Game_Edge{
 	public:
-	vector<int> selectionArray;
+	vector<string> selectionArray;
 	TCL_Game_Node* src;
 	TCL_Game_Node* dst;
 };
