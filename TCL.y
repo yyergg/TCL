@@ -8,14 +8,14 @@ extern TCL_Formula* ROOT_ptr;
 
 
 void yyerror(const char *s) {
-	cout << "EEK, parse error!  Message: " << s << endl;
-	// might as well halt now:
-	exit(-1);
+    cout << "EEK, parse error!  Message: " << s << endl;
+    // might as well halt now:
+    exit(-1);
 }
 %}
 
 %union {
-	TCL_Formula* ptr;
+    TCL_Formula* ptr;
 }
 
 %token <ptr> TOKEN_ROOT
@@ -37,85 +37,85 @@ void yyerror(const char *s) {
 %%
 
 state_formula: TOKEN_ROOT TOKEN_LEFT expression TOKEN_RIGHT{
-								$1->type=PARSE_ROOT;
-								$1->outs.push_back($3);
-								$3->ins.push_back($1);
-								ROOT_ptr=$1;
-							}
-		;
+                                $1->type=PARSE_ROOT;
+                                $1->outs.push_back($3);
+                                $3->ins.push_back($1);
+                                ROOT_ptr=$1;
+                            }
+        ;
 
 
 
     
 expression: TOKEN_PLUS TOKEN_LEFT expression TOKEN_RIGHT{
-							$1->type=PLUS;
-							$1->outs.push_back($3);
-							$3->ins.push_back($1);
-							$$=$1;
-						} 
-						|TOKEN_MINUS TOKEN_LEFT expression TOKEN_RIGHT{
-							$1->type=MINUS;
-							$1->outs.push_back($3);
-							$3->ins.push_back($1);
-							$$=$1;
-						} 
+                            $1->type=PLUS;
+                            $1->outs.push_back($3);
+                            $3->ins.push_back($1);
+                            $$=$1;
+                        } 
+                        |TOKEN_MINUS TOKEN_LEFT expression TOKEN_RIGHT{
+                            $1->type=MINUS;
+                            $1->outs.push_back($3);
+                            $3->ins.push_back($1);
+                            $$=$1;
+                        } 
     | TOKEN_LEFT expression TOKEN_RIGHT{$$=$2;}
     | TOKEN_LEFT expression TOKEN_RIGHT TOKEN_AND TOKEN_LEFT expression TOKEN_RIGHT {
-    	$4->type=AND;
-    	$4->outs.push_back($2);
-    	$4->outs.push_back($6);
-    	$2->ins.push_back($4);
-    	$6->ins.push_back($4);
-    	$$=$4;
+        $4->type=AND;
+        $4->outs.push_back($2);
+        $4->outs.push_back($6);
+        $2->ins.push_back($4);
+        $6->ins.push_back($4);
+        $$=$4;
     }
     | TOKEN_LEFT expression TOKEN_RIGHT TOKEN_OR TOKEN_LEFT expression TOKEN_RIGHT {
-    	$4->type=OR;
-    	$4->outs.push_back($2);
-    	$4->outs.push_back($6);
-    	$2->ins.push_back($4);
-    	$6->ins.push_back($4);
-    	$$=$4;
+        $4->type=OR;
+        $4->outs.push_back($2);
+        $4->outs.push_back($6);
+        $2->ins.push_back($4);
+        $6->ins.push_back($4);
+        $$=$4;
     }
     | TOKEN_LEFT expression TOKEN_RIGHT TOKEN_UNTIL TOKEN_LEFT expression TOKEN_RIGHT 
     {
-    	$4->type=UNTIL;
-    	$4->outs.push_back($2);
-    	$4->outs.push_back($6);
-    	$2->ins.push_back($4);
-    	$6->ins.push_back($4);
-    	$$=$4;
+        $4->type=UNTIL;
+        $4->outs.push_back($2);
+        $4->outs.push_back($6);
+        $2->ins.push_back($4);
+        $6->ins.push_back($4);
+        $$=$4;
     }
     | TOKEN_LEFT expression TOKEN_RIGHT TOKEN_WNTIL TOKEN_LEFT expression TOKEN_RIGHT{
-    	$4->type=WNTIL;
-    	$4->outs.push_back($2);
-    	$4->outs.push_back($6);
-    	$2->ins.push_back($4);
-    	$6->ins.push_back($4);
-    	$$=$4;
+        $4->type=WNTIL;
+        $4->outs.push_back($2);
+        $4->outs.push_back($6);
+        $2->ins.push_back($4);
+        $6->ins.push_back($4);
+        $$=$4;
     }
     | TOKEN_NEXT TOKEN_LEFT expression TOKEN_RIGHT {
-			$1->type=NEXT;
-			$1->outs.push_back($3);
-			$3->ins.push_back($1);
-			$$=$1;
-		} 
+            $1->type=NEXT;
+            $1->outs.push_back($3);
+            $3->ins.push_back($1);
+            $$=$1;
+        } 
     | TOKEN_NOT TOKEN_LEFT expression TOKEN_RIGHT{
-			$1->type=NOT;
-			$1->outs.push_back($3);
-			$3->ins.push_back($1);
-			$$=$1;
-		} 
+            $1->type=NOT;
+            $1->outs.push_back($3);
+            $3->ins.push_back($1);
+            $$=$1;
+        } 
     | TOKEN_TRUE{
-			$1->type=TRUE_NODE;
-			$$=$1;
+            $1->type=TRUE_NODE;
+            $$=$1;
     }
     | TOKEN_FALSE{
-			$1->type=FALSE_NODE;
-			$$=$1;
+            $1->type=FALSE_NODE;
+            $$=$1;
     }
     | TOKEN_ATOMIC{
-    	$1->type=ATOMIC;
-    	$$=$1;    
+        $1->type=ATOMIC;
+        $$=$1;    
     }
     ;
 

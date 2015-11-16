@@ -1,5 +1,5 @@
 ﻿TCL: lex.yy.c TCL.tab.c TCL.tab.h TCL.cpp
-	g++ TCL.cpp TCL.tab.c lex.yy.c debug.cpp redlib.a  -lfl -o TCL
+	g++ -m32 TCL.cpp TCL.tab.c lex.yy.c debug.cpp redlib.a -o TCL
 
 TCL.tab.c TCL.tab.h:TCL.y
 	bison -d TCL.y
@@ -14,6 +14,3 @@ clean:
 	find . -name '*~' -type f -exec rm -f {} \;
 	rm TCL
 
-
-
-	

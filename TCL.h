@@ -12,9 +12,9 @@
 #include<cstring>
 using namespace::std;
 extern "C"{
-	#include"redcplugins.e"
-	#include"redlib.h"
-	#include"redlib.e"
+    #include"redcplugins.e"
+    #include"redlib.h"
+    #include"redlib.e"
 }
 
 
@@ -58,18 +58,18 @@ class TCL_Game_Edge;
 
 
 class Computation_Tree_Node{
-	public:
-		Computation_Tree_Node();
-		~Computation_Tree_Node();
-		Computation_Tree_Node* ins;
-		vector<Computation_Tree_Node*> outs;
-		int until_token_old;
-		int until_token;
-		int* guessedSolution;
-		int* obligation;
-		int* passDown;
-		bool* passed;
-		TCL_Game_Node* state;
+    public:
+        Computation_Tree_Node();
+        ~Computation_Tree_Node();
+        Computation_Tree_Node* ins;
+        vector<Computation_Tree_Node*> outs;
+        int until_token_old;
+        int until_token;
+        int* guessedSolution;
+        int* obligation;
+        int* passDown;
+        bool* passed;
+        TCL_Game_Node* state;
 };
 
 
@@ -77,30 +77,30 @@ class Computation_Tree_Node{
 
 
 class TCL_Formula{
-	public:
-	int type;
-	int index;
-	int strategy_index;
-	int closure_index;
-	string str;
-	int owner;
-	vector<TCL_Formula*> ins;
-	vector<TCL_Formula*> outs;
+    public:
+    int type;
+    int index;
+    int strategy_index;
+    int closure_index;
+    string str;
+    int owner;
+    vector<TCL_Formula*> ins;
+    vector<TCL_Formula*> outs;
 };
 
 class TCL_Game_Node{
-	public:
-	int index;
-	redgram red;
-	vector<TCL_Game_Edge*> outs;
-	vector<TCL_Game_Edge*> ins;
+    public:
+    int index;
+    redgram red;
+    vector<TCL_Game_Edge*> outs;
+    vector<TCL_Game_Edge*> ins;
 };
 
 class TCL_Game_Edge{
-	public:
-	vector<int> selectionArray;
-	TCL_Game_Node* src;
-	TCL_Game_Node* dst;
+    public:
+    vector<int> selectionArray;
+    TCL_Game_Node* src;
+    TCL_Game_Node* dst;
 };
 
 
