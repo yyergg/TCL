@@ -1,16 +1,21 @@
-﻿TCL: lex.yy.c TCL.tab.c TCL.tab.h TCL.cpp
-	g++ -m32 TCL.cpp TCL.tab.c lex.yy.c debug.cpp redlib.a -o TCL
+TCL: TCL.cpp lex.yy.c Expression.tab.c Expression.tab.h Graph
+	g++ TCL.cpp Expression.tab.c lex.yy.c Graph.o Expression.o -g -o TCL
 
-TCL.tab.c TCL.tab.h:TCL.y
-	bison -d TCL.y
+Graph: Graph.cpp Graph.h
+	g++ -c Graph.cpp
 
-lex.yy.c:TCL.l
-	flex TCL.l
+Expression: lex.yy.c Expression.tab.c Expression.tab.h Expression.cpp Expression.h
+	g++ -c Expression.cpp
+
+Expression.tab.c Expression.tab.h:Expression.y
+	bison -d Expression.y
+
+lex.yy.c:Expression.l
+	flex Expression.l
 
 clean:
-	find . -name '*.ir' -type f -exec rm -f {} \;
-	find . -name '*.o' -type f -exec rm -f {} \;
-	find . -name '*.redtab' -type f -exec rm -f {} \;
-	find . -name '*~' -type f -exec rm -f {} \;
 	rm TCL
-
+	rm *.o
+	rm *.tab.c
+	rm *.tab.h
+	rm lex.yy.c

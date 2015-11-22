@@ -1,11 +1,9 @@
 %{
-#include "TCL.h"
+#include "Expression.h"
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
-extern TCL_Formula* ROOT_ptr;
-
-
+extern ExpNode* rootExp;
 
 void yyerror(const char *s) {
     cout << "EEK, parse error!  Message: " << s << endl;
@@ -15,7 +13,7 @@ void yyerror(const char *s) {
 %}
 
 %union {
-    TCL_Formula* ptr;
+    ExpNode* ptr;
 }
 
 %token <ptr> TOKEN_ROOT
@@ -36,29 +34,27 @@ void yyerror(const char *s) {
 %type <ptr> expression
 %%
 
-state_formula: TOKEN_ROOT TOKEN_LEFT expression TOKEN_RIGHT{
-                                $1->type=PARSE_ROOT;
-                                $1->outs.push_back($3);
-                                $3->ins.push_back($1);
-                                ROOT_ptr=$1;
-                            }
-        ;
+state_formula:
+    TOKEN_ROOT TOKEN_LEFT expression TOKEN_RIGHT{
+        $1->type=PARSE_ROOT;
+        $1->outs.push_back($3);
+        $3->ins.push_back($1);
+        rootExp=$1;
+    };
 
-
-
-    
-expression: TOKEN_PLUS TOKEN_LEFT expression TOKEN_RIGHT{
-                            $1->type=PLUS;
-                            $1->outs.push_back($3);
-                            $3->ins.push_back($1);
-                            $$=$1;
-                        } 
-                        |TOKEN_MINUS TOKEN_LEFT expression TOKEN_RIGHT{
-                            $1->type=MINUS;
-                            $1->outs.push_back($3);
-                            $3->ins.push_back($1);
-                            $$=$1;
-                        } 
+expression:
+    TOKEN_PLUS TOKEN_LEFT expression TOKEN_RIGHT{
+        $1->type=PLUS;
+        $1->outs.push_back($3);
+        $3->ins.push_back($1);
+        $$=$1;
+    }
+    |TOKEN_MINUS TOKEN_LEFT expression TOKEN_RIGHT{
+        $1->type=MINUS;
+        $1->outs.push_back($3);
+        $3->ins.push_back($1);
+        $$=$1;
+    }
     | TOKEN_LEFT expression TOKEN_RIGHT{$$=$2;}
     | TOKEN_LEFT expression TOKEN_RIGHT TOKEN_AND TOKEN_LEFT expression TOKEN_RIGHT {
         $4->type=AND;
@@ -98,13 +94,13 @@ expression: TOKEN_PLUS TOKEN_LEFT expression TOKEN_RIGHT{
             $1->outs.push_back($3);
             $3->ins.push_back($1);
             $$=$1;
-        } 
+    }
     | TOKEN_NOT TOKEN_LEFT expression TOKEN_RIGHT{
             $1->type=NOT;
             $1->outs.push_back($3);
             $3->ins.push_back($1);
             $$=$1;
-        } 
+    }
     | TOKEN_TRUE{
             $1->type=TRUE_NODE;
             $$=$1;
@@ -115,13 +111,7 @@ expression: TOKEN_PLUS TOKEN_LEFT expression TOKEN_RIGHT{
     }
     | TOKEN_ATOMIC{
         $1->type=ATOMIC;
-        $$=$1;    
-    }
-    ;
-
+        $$=$1;
+    };
 
 %%
-
-
-
-
