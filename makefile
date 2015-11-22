@@ -1,4 +1,4 @@
-TCL: TCL.cpp lex.yy.c Expression.tab.c Expression.tab.h Graph
+TCL: TCL.cpp lex.yy.c Expression.tab.c Expression.tab.h Graph Expression
 	g++ TCL.cpp Expression.tab.c lex.yy.c Graph.o Expression.o -g -o TCL
 
 Graph: Graph.cpp Graph.h
