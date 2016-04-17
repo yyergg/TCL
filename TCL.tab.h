@@ -69,7 +69,7 @@ union YYSTYPE
 {
 #line 17 "TCL.y" /* yacc.c:1909  */
 
-    TCL_Formula* ptr;
+	TCLFormula* ptr;
 
 #line 75 "TCL.tab.h" /* yacc.c:1909  */
 };

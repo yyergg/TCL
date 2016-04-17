@@ -1,1333 +1,859 @@
-﻿#include "TCL.h"
-#include "debug.h"
+#include "TCL.h"
+
 /*extern function from parser*/
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
 
 //Global variables
-bool debugCheckTCL=false;
+int g_sxi_count;
+int g_node_count;
+int g_strategy_count;
+int g_parse_count;
 
-int sxiCount;
-int nodeCount;
-int strategyCount;
-int closureCount;
-int parseCount;
-
+char input_owner[20] = "turn";
 redgram path;
-TCL_Game_Edge* temp_edge;
-TCL_Game_Node* temp_node;
-string temp_string;
-char temp_char[1000];
-map<string,int> node_map;
-map<int,string> type_map;
-vector<TCL_Game_Node*> Nodes;
-vector<TCL_Formula*> Parse_Tree;
-vector<TCL_Formula*> Closure;
-vector<int> strategy2owner;
 
-TCL_Formula* ROOT_ptr;
 
-int ** Matrix;
-int* strategy_stack;
-//End of Global variables
 
-int    cplugin_proc(int module_index,int    proc_index) {
-  switch(module_index) {
-  case 1:
-    break;
-  case 2:
-    break;
-  case 3:
-    switch (proc_index) {
+map<string, int> node_map;
+map<int, string> type_map;
+vector<TCLGameNode*> g_nodes;
+vector<TCLFormula*> g_parse_tree;
+vector<int> g_strategy_to_owner;
+
+TCLFormula* g_parse_root;
+
+int** g_strategy_formula_matrix;
+//Global End
+
+int cplugin_proc(int module_index, int proc_index) {
+    switch (module_index) {
     case 1:
-      break;
-    case 2:
-      break;
-    case 3:
-
-      break;
-    default:
-      fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
-        module_index, proc_index
-      );
-      fflush(RED_OUT);
-      exit(0);
-    }
-    break;
-  default:
-    fprintf(RED_OUT,
-      "\nCPLUG-INs: Illegal module index %1d.\n", module_index
-    );
-    fflush(RED_OUT);
-    exit(0);
-  }
-}
-//redundant function to meet RED requirement
-
-Computation_Tree_Node::Computation_Tree_Node(){
-    int i;
-    guessedSolution=new int[closureCount];
-    until_token=0;
-    until_token_old=0;
-    obligation=new int[closureCount];
-    passDown=new int[closureCount];
-    passed=new bool[closureCount];
-    for(i=0;i<closureCount;i++){
-        guessedSolution[i]=DONT_CARE;
-        obligation[i]=0;
-        passDown[i]=0;
-        passed[i]=false;
-    }
-}
-
-
-Computation_Tree_Node::~Computation_Tree_Node(){
-    delete guessedSolution;
-    delete obligation;
-    delete passDown;
-    delete passed;
-}
-
-
-void Setup_TCL_Formula(TCL_Formula* F){
-    int i;
-    Parse_Tree.push_back(F);
-    if(F->type==PARSE_ROOT || F->type==PLUS){
-        strategy2owner.push_back(F->owner);
-        F->index=parseCount;
-        parseCount++;
-        F->strategy_index=strategyCount;
-        strategyCount++;
-        F->closure_index=0;
-        for(i=0;i<F->outs.size();i++){
-            Setup_TCL_Formula(F->outs[i]);
-        }
-    }
-    else if(F->type==MINUS){
-        F->index=parseCount;
-        parseCount++;
-        F->strategy_index=-1;
-        F->closure_index=0;
-        for(i=0;i<F->outs.size();i++){
-            Setup_TCL_Formula(F->outs[i]);
-        }
-    }
-    else if(F->type==ATOMIC){
-        F->index=parseCount;
-        parseCount++;
-        F->closure_index=closureCount;
-        Closure.push_back(F);
-        closureCount++;
-        F->strategy_index=0;
-        for(i=0;i<F->outs.size();i++){
-            Setup_TCL_Formula(F->outs[i]);
-        }
-    }
-    else{
-        F->index=parseCount;
-        parseCount++;
-        F->closure_index=closureCount;
-        Closure.push_back(F);
-        closureCount++;
-        F->strategy_index=0;
-        for(i=0;i<F->outs.size();i++){
-            Setup_TCL_Formula(F->outs[i]);
-        }
-    }
-}
-
-
-void fill_in_matrix(TCL_Formula* F){
-    int i;
-    switch(F->type){
-        case TRUE_NODE:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            break;
-        case FALSE_NODE:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            break;
-        case PARSE_ROOT:
-//            cout<<"PARSE_ROOT:"<<endl;
-            for(i=0;i<strategyCount;i++){
-                if(strategy2owner[i]==F->owner){
-                    strategy_stack[i]=0;
-                }
-            } //clean the previous strategy of the same player
-            strategy_stack[F->strategy_index]= 1;
-            fill_in_matrix(F->outs[0]);
-            strategy_stack[F->strategy_index]= 0;
-//            cout<<"END"<<endl;
-            break;
-        case ATOMIC:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            break;
-    case NOT:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-        fill_in_matrix(F->outs[0]);
         break;
-        case OR:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            fill_in_matrix(F->outs[0]);
-            fill_in_matrix(F->outs[1]);
+    case 2:
+        break;
+    case 3:
+        switch (proc_index) {
+        case 1:
             break;
-        case AND:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            fill_in_matrix(F->outs[0]);
-            fill_in_matrix(F->outs[1]);
+        case 2:
             break;
-        case PLUS:
-            for(i=0;i<strategyCount;i++){
-                if(strategy2owner[i]==F->owner){
-                    strategy_stack[i]=0;
-                }
-            } //clean the previous strategy of the same player
-            strategy_stack[F->strategy_index]= 1;
-            fill_in_matrix(F->outs[0]);
-            strategy_stack[F->strategy_index]= 0;
+        case 3:
             break;
-        case MINUS:
-            for(i=0;i<strategyCount;i++){
-                if(strategy2owner[i]==F->owner){
-                    strategy_stack[i]=0;
-                }
-            } //clean the previous strategy of the same player
-            fill_in_matrix(F->outs[0]);
-            break;
-        case UNTIL:
-//            cout<<"UNTIL"<<endl;
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            fill_in_matrix(F->outs[0]);
-            fill_in_matrix(F->outs[1]);
-            break;
-        case WNTIL:
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-            fill_in_matrix(F->outs[0]);
-            fill_in_matrix(F->outs[1]);
-            break;
-        case NEXT:
-//            cout<<"NEXT"<<endl;
-            for(i=0;i<strategyCount;i++){
-                Matrix[i][F->closure_index]=strategy_stack[i];
-            }
-        fill_in_matrix(F->outs[0]);
-            break;
+        default:
+            fprintf(RED_OUT, "\nCPLUG-INs module %1d: Illegal proc index %1d.\n",
+                    module_index, proc_index
+                   );
+            fflush(RED_OUT);
+            exit(0);
+        }
+        break;
+    default:
+        fprintf(RED_OUT,
+                "\nCPLUG-INs: Illegal module index %1d.\n", module_index
+               );
+        fflush(RED_OUT);
+        exit(0);
     }
 }
 
-
-int findNextClosure(int x){
-    if(Parse_Tree[x]->type==PARSE_ROOT || Parse_Tree[x]->type==PLUS || Parse_Tree[x]->type==MINUS){
-        return findNextClosure(Parse_Tree[x]->outs[0]->index);
-    }
-    else {return Parse_Tree[x]->closure_index;}
+ComputationTreeNode::ComputationTreeNode() {
+    this->obligation = vector<int>(g_parse_count, DONT_CARE);
+    this->pass_down = vector<int>(g_parse_count, DONT_CARE);
 }
 
-
-void setupMatrix(){
-    int i,j;
-    Matrix=new int*[strategyCount];
-    for(i=0;i<strategyCount;i++){
-        Matrix[i]=new int[closureCount];
-    }
-    for(i=0;i<strategyCount;i++){
-        for(j=0;j<closureCount;j++){
-            Matrix[i][j]=0;
-        }
-    }
-    //setup strategy_stack, conveniently
-    strategy_stack=new int[strategyCount];
-    for(i=0;i<strategyCount;i++){
-        strategy_stack[i]=0;
-    }
-}
-
-
-void extractModelFromFile(TCL_Game_Node* root){
-//    cout<<root->index<<": "<<red_diagram_string(root->red)<<endl;
-    int i;
-    for(i=1;i<sxiCount;i++){
-        redgram temp_red=red_sync_xtion_fwd(
-            root->red,
-            path,
-            RED_USE_DECLARED_SYNC_XTION,
-            i,
-            RED_GAME_MODL | RED_GAME_SPEC | RED_GAME_ENVR,
-            RED_TIME_PROGRESS,
-            RED_NORM_ZONE_CLOSURE,
-            RED_NO_ACTION_APPROX,
-            RED_REDUCTION_INACTIVE,
-            RED_NOAPPROX_MODL_GAME | RED_NOAPPROX_SPEC_GAME
-            | RED_NOAPPROX_ENVR_GAME | RED_NOAPPROX_GLOBAL_GAME,
-            RED_NO_SYMMETRY,
-            0);
-        if(red_and(temp_red,red_query_diagram_enhanced_global_invariance())!=red_false()){
-            if(node_map[temp_string.assign(red_diagram_string(temp_red))]==0){
-                temp_edge=new TCL_Game_Edge;
-                temp_node=new TCL_Game_Node;
-                temp_edge->src=root;
-                temp_edge->dst=temp_node;
-                root->outs.push_back(temp_edge);
-                temp_node->index=nodeCount; nodeCount++;
-                temp_node->red=temp_red;
-                temp_node->ins.push_back(temp_edge);
-                Nodes.push_back(temp_node);
-                node_map[temp_string.assign(red_diagram_string(temp_red))]=temp_node->index;
-//                cout<<root->index<<"--"<<i<<"-->"<<temp_node->index<<endl;
-                extractModelFromFile(temp_node);
-            }
-            else{
-                temp_node=Nodes[node_map[temp_string.assign(red_diagram_string(temp_red))]];
-                temp_edge=new TCL_Game_Edge;
-                temp_edge->src=root;
-                temp_edge->dst=temp_node;
-                root->outs.push_back(temp_edge);
-                temp_node->ins.push_back(temp_edge);
-//                cout<<root->index<<"--"<<i<<"-->"<<temp_node->index<<endl;
-            }
-        }
-    }
-}
-
-
-void labelPlayerSelectionOnEdge(TCL_Game_Node* root){
-    int lb,hb;
-    vector<string> selectionName;
-    selectionName.push_back("p1_choose");
-    selectionName.push_back("p2_choose");
-    char temp[20];
-    int i,j,k;
-    for(i=0;i<nodeCount;i++){
-        for(j=0;j<Nodes[i]->ins.size();j++){
-            for(k=0;k<selectionName.size();k++){
-                strcpy(temp,selectionName[k].c_str());
-                red_get_cube_discrete_value(Nodes[i]->red,temp,&lb,&hb);
-                Nodes[i]->ins[j]->selectionArray.push_back(lb);            
-            }
-        }
-    }
-}
-
-
-bool check_parent(int a,int b){
-    if(a==b){return true;}
-    else{
-        if(a>b){
-            while(a!=0){
-                a=Parse_Tree[a]->ins[0]->index;
-                if(a==b){return false;}
-            }
-        }
-        else if(a<b){
-            while(b!=0){
-                b=Parse_Tree[b]->ins[0]->index;
-                if(a==b){return false;}
-            }
-        }
-    }
-    return true;
-}
-
-
-int checkVisited(Computation_Tree_Node* R){
-    cout<<"check visited"<<endl;
-    int i;
-    if(R->until_token_old==0){
-        R->until_token=(R->until_token_old+1)%(closureCount+1);
-    }
-    else if(Closure[R->until_token_old-1]->type==UNTIL && R->guessedSolution[R->until_token_old-1]==TRUE_GUESSED_PHASE_2){
-        R->until_token=R->until_token_old;
-    }
-    else if(Closure[R->until_token_old-1]->type==WNTIL && R->guessedSolution[R->until_token_old-1]==FALSE_GUESSED_PHASE_2){
-        R->until_token=R->until_token_old;
-    }    
-    else{
-        R->until_token=(R->until_token_old+1)%(closureCount+1);
-        while(R->until_token!=0 && (Closure[R->until_token-1]->type!=UNTIL && Closure[R->until_token-1]->type!=WNTIL)){
-            R->until_token=(R->until_token+1)%(closureCount+1);
-        }
-    }
-
-    cout<<"checkVisited(state,token):("<<R->state->index<<","<<R->until_token<<")"<<endl;
-    
-    
-    Computation_Tree_Node* ancestor;
-    ancestor=R;
-    int local_index;
-    local_index=R->state->index;
-    bool token_changed;
-    token_changed=false;
-    while(ancestor->ins!=NULL){
-        ancestor=ancestor->ins;
-        if(ancestor->until_token!=R->until_token){token_changed=true;}
-        else{
-            if(ancestor->state->index==local_index){
-                bool diff_G;
-                diff_G=false;
-                for(i=0;i<closureCount;i++){
-                    if(R->guessedSolution[i]!=ancestor->guessedSolution[i]){diff_G=true;}
-                }
-                if(diff_G==false){
-                    if(token_changed && R->until_token==0){
-                        cout<<"visited and pass"<<endl;
-                        return PASS;
+void ComputationTreeNode::ListAllPossibleGuess() {
+    int i, j;
+    vector<int> new_guess(g_parse_count, DONT_CARE);
+    new_guess = this->obligation;
+    this->all_possible_guess.push_back(new_guess);
+    i = 0;
+    while (i < this->all_possible_guess.size()) {
+        // deducting until first unguessed g_parse_tree found
+        for (j = 0; j < g_parse_count; j++) {
+            if (this->all_possible_guess[i][j] == MUST_TRUE) {
+                if (g_parse_tree[j]->type == NOT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
+                } else if (g_parse_tree[j]->type == PLUS
+                           || g_parse_tree[j]->type == MINUS
+                           || g_parse_tree[j]->type == PARSE_ROOT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;
+                } else if (g_parse_tree[j]->type == NEXT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    if (this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] == DONT_CARE) {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_MUST_TRUE;
+                    } else {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_AND_MUST_TRUE;
                     }
-                    else{
-                        cout<<"visited and fail"<<endl;
-                        return FAIL;
+                } else if (g_parse_tree[j]->type == TRUE_NODE
+                           || g_parse_tree[j]->type == FALSE_NODE
+                           || g_parse_tree[j]->type == ATOMIC) {
+                    continue;
+                } else { //OR AND UNTIL WNTIL
+                    // Already satisfied or 1 way
+                    int left = g_parse_tree[j]->outs[0]->index;
+                    int right = g_parse_tree[j]->outs[1]->index;
+                    if (g_parse_tree[j]->type == OR) {
+                        if (this->all_possible_guess[i][left] == MUST_TRUE
+                                || this->all_possible_guess[i][right] == MUST_TRUE) {
+                            this->all_possible_guess[i][j] = DONT_CARE;
+                            continue;
+                        }
+                    } else if (g_parse_tree[j]->type == AND) {
+                        this->all_possible_guess[i][j] = DONT_CARE;
+                        this->all_possible_guess[i][left] = MUST_TRUE;
+                        this->all_possible_guess[i][right] = MUST_TRUE;
+                        continue;
+                    } else {
+                        if (this->all_possible_guess[i][right] == MUST_TRUE) {
+                            this->all_possible_guess[i][j] = DONT_CARE;
+                            continue;
+                        }
                     }
+                    // all the cases need guessing will come to this break
+                    break;
+                }
+            } else if (this->all_possible_guess[i][j] == MUST_FALSE) {
+                if (g_parse_tree[j]->type == NOT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;
+                } else if (g_parse_tree[j]->type == PLUS
+                           || g_parse_tree[j]->type == MINUS
+                           || g_parse_tree[j]->type == PARSE_ROOT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
+                } else if (g_parse_tree[j]->type == NEXT) {
+                    this->all_possible_guess[i][j] = DONT_CARE;
+                    if (this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] == DONT_CARE) {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_MUST_FALSE;
+                    } else {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_AND_MUST_FALSE;
+                    }
+                } else if (g_parse_tree[j]->type == TRUE_NODE
+                           || g_parse_tree[j]->type == FALSE_NODE
+                           || g_parse_tree[j]->type == ATOMIC) {
+                    continue;
+                } else { //OR AND UNTIL WNTIL
+                    // Already satisfied or 1 way
+                    int left = g_parse_tree[j]->outs[0]->index;
+                    int right = g_parse_tree[j]->outs[1]->index;
+                    if (g_parse_tree[j]->type == OR) {
+                        this->all_possible_guess[i][j] = DONT_CARE;
+                        this->all_possible_guess[i][left] = MUST_FALSE;
+                        this->all_possible_guess[i][right] = MUST_FALSE;
+                    } else if (g_parse_tree[j]->type == AND) {
+                        if (this->all_possible_guess[i][left] == MUST_FALSE
+                                || this->all_possible_guess[i][right] == MUST_FALSE) {
+                            this->all_possible_guess[i][j] = DONT_CARE;
+                            continue;
+                        }
+                    } else {
+                        if (this->all_possible_guess[i][left] == MUST_FALSE
+                                && this->all_possible_guess[i][right] == MUST_FALSE) {
+                            this->all_possible_guess[i][j] = DONT_CARE;
+                            continue;
+                        }
+                    }
+                    // all the cases need guessing will come to this break
+                    break;
+                }
+            } else { //DONT_CARE or PASS_DOWN_* or GUESSED_*
+                continue;
+            }
+        }
+
+        // if this guess array is completed
+        if (j == g_parse_count) {
+            i++;
+            continue;
+        }
+
+        // [todo] guess deeper and delete current unfinished guess
+        int left = g_parse_tree[j]->outs[0]->index;
+        int right = g_parse_tree[j]->outs[1]->index;
+
+        // All the cases require guessing
+        if (g_parse_tree[j]->type == OR) {
+            if (this->all_possible_guess[i][j] == MUST_TRUE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                vector<int> deductionChild_1(g_parse_count, DONT_CARE);
+                vector<int> deductionChild_2(g_parse_count, DONT_CARE);
+
+                deductionChild_1 = this->all_possible_guess[i];
+                deductionChild_1[j] = DONT_CARE;
+                deductionChild_1[right] = MUST_TRUE;
+
+                deductionChild_2 = this->all_possible_guess[i];
+                deductionChild_2[j] = DONT_CARE;
+                deductionChild_2[left] = MUST_TRUE;
+
+                if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                    deductionChild_1[j] = PASS_DOWN_MUST_TRUE;
+                    deductionChild_2[j] = PASS_DOWN_MUST_TRUE;
+                }
+
+                this->all_possible_guess.erase(this->all_possible_guess.begin() + i);
+                this->all_possible_guess.push_back(deductionChild_1);
+                this->all_possible_guess.push_back(deductionChild_2);
+            }
+        } else if (g_parse_tree[j]->type == AND) {
+            if (this->all_possible_guess[i][j] == MUST_FALSE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                vector<int> deductionChild_1(g_parse_count, DONT_CARE);
+                vector<int> deductionChild_2(g_parse_count, DONT_CARE);
+
+                deductionChild_1 = this->all_possible_guess[i];
+                deductionChild_1[j] = DONT_CARE;
+                deductionChild_1[right] = MUST_FALSE;
+
+                deductionChild_2 = this->all_possible_guess[i];
+                deductionChild_2[j] = DONT_CARE;
+                deductionChild_2[left] = MUST_FALSE;
+
+                if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                    deductionChild_1[j] = PASS_DOWN_MUST_FALSE;
+                    deductionChild_2[j] = PASS_DOWN_MUST_FALSE;
+                }
+
+                this->all_possible_guess.erase(this->all_possible_guess.begin() + i);
+                this->all_possible_guess.push_back(deductionChild_1);
+                this->all_possible_guess.push_back(deductionChild_2);
+            }
+        } else {
+            //UNTIL and WNTIL
+            if (this->all_possible_guess[i][j] == MUST_TRUE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                vector<int> deductionChild_1(g_parse_count, DONT_CARE);
+                vector<int> deductionChild_2(g_parse_count, DONT_CARE);
+
+                deductionChild_1 = this->all_possible_guess[i];
+                deductionChild_1[j] = DONT_CARE;
+                deductionChild_1[right] = MUST_TRUE;
+                if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                    deductionChild_1[j] = PASS_DOWN_MUST_TRUE;
+                }
+
+                deductionChild_2 = this->all_possible_guess[i];
+                deductionChild_2[j] = GUESSED_UNTIL_TRUE;
+                deductionChild_2[left] = MUST_TRUE;
+
+                this->all_possible_guess.erase(this->all_possible_guess.begin() + i);
+                this->all_possible_guess.push_back(deductionChild_1);
+                this->all_possible_guess.push_back(deductionChild_2);
+            } else if (this->all_possible_guess[i][j] == MUST_FALSE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                vector<int> deductionChild_1(g_parse_count, DONT_CARE);
+                vector<int> deductionChild_2(g_parse_count, DONT_CARE);
+
+                deductionChild_1 = this->all_possible_guess[i];
+                deductionChild_1[j] = DONT_CARE;
+                deductionChild_1[left] = MUST_FALSE;
+                deductionChild_1[right] = MUST_FALSE;
+                if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                    deductionChild_1[j] = PASS_DOWN_MUST_FALSE;
+                }
+
+                deductionChild_2 = this->all_possible_guess[i];
+                deductionChild_2[j] = GUESSED_UNTIL_FALSE;
+                deductionChild_2[right] = MUST_FALSE;
+
+                this->all_possible_guess.erase(this->all_possible_guess.begin() + i);
+                this->all_possible_guess.push_back(deductionChild_1);
+                this->all_possible_guess.push_back(deductionChild_2);
+            }
+        }
+        continue;
+    }
+}
+
+void ComputationTreeNode::PrintAllPossibleGuess() {
+    int i, j;
+    for (i = 0; i < g_parse_count; i++) {
+        cout << setw(3) << g_parse_tree[i]->index;
+    }
+    cout << endl;
+    for (i = 0; i < this->all_possible_guess.size(); i++) {
+        for (j = 0; j < g_parse_tree.size(); j++) {
+            cout << setw(3) << this->all_possible_guess[i][j];
+        }
+        cout << endl;
+    }
+}
+
+void ComputationTreeNode::CheckLocal() {
+    cout << "CheckLocal" << endl;
+    int i, j;
+    for (i = 0; i < this->all_possible_guess.size(); i++) {
+        bool check_fail;
+        check_fail = false;
+        for (j = 0; j < g_parse_count; j++) {
+            //List all fail cases
+            //(MUST_TRUE,MUST_FALSE,OTHER)x(ATOMIC,TRUE_NODE,FALSE_NODE)
+            if (this->all_possible_guess[i][j] == MUST_TRUE
+                    || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                if (g_parse_tree[j]->type == ATOMIC) {
+                    char atomic_str[1000];
+                    strcpy(atomic_str, g_parse_tree[j]->str.c_str());
+                    if (red_and(red_diagram(atomic_str), this->state->red) == red_false()) {
+                        check_fail = true;
+                        break;
+                    }
+                } else if (g_parse_tree[j]->type == FALSE_NODE) {
+                    check_fail = true;
+                    break;
+                }
+            } else if (this->all_possible_guess[i][j] == MUST_FALSE
+                       || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                if (g_parse_tree[j]->type == ATOMIC) {
+                    char atomic_str[1000];
+                    strcpy(atomic_str, g_parse_tree[j]->str.c_str());
+                    if (red_and(red_diagram(atomic_str), this->state->red) != red_false()) {
+                        check_fail = true;
+                        break;
+                    }
+                } else if (g_parse_tree[j]->type == TRUE_NODE) {
+                    check_fail = true;
+                    break;
                 }
             }
         }
+        if (check_fail) {
+            this->all_possible_guess.erase(this->all_possible_guess.begin() + i);
+            i--;
+        }
     }
-    cout<<"unvisited"<<endl;
-    return UNVISITED;
 }
 
-
-void guessFirstPossibleSolution(Computation_Tree_Node* R){
-    int i,j;
-    for(i=0;i<closureCount;i++){
-        R->guessedSolution[i]=R->obligation[i];
-    }
-    for(i=0;i<closureCount;i++){
-        if(R->guessedSolution[i]==MUST_TRUE){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    R->guessedSolution[left]=MUST_TRUE;
-                    break;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=MUST_TRUE;
-                    R->guessedSolution[left]=MUST_TRUE;
-                    R->guessedSolution[right]=MUST_TRUE;
-                    break;
-                case UNTIL:
-                    //not sure
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    R->guessedSolution[right]=MUST_TRUE;
-                    break;
-                case WNTIL:
-                    //not sure
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    R->guessedSolution[right]=MUST_TRUE;
-                    break;
-                case NOT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=MUST_FALSE;
-                    break;
-                default:
-                    R->guessedSolution[i]=MUST_TRUE;
+bool ComputationTreeNode::isDifferent(ComputationTreeNode* target){
+    cout<<"diff: "<<this<<" "<<target<<endl;
+    if(target->state == this->state){
+        int i;
+        for(i=0;i<g_parse_count;i++){
+            if(g_parse_tree[i]->type == UNTIL || g_parse_tree[i]->type == WNTIL){
+                if(this->all_possible_guess[this->current_guess][i]
+                    != target->all_possible_guess[target->current_guess][i]){
+                    return true;
+                }
             }
         }
-        else if(R->guessedSolution[i]==MUST_FALSE){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=DONT_CARE;
-                    R->guessedSolution[left]=MUST_FALSE;
-                    R->guessedSolution[right]=MUST_FALSE;
-                    break;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    R->guessedSolution[left]=MUST_FALSE;
-                    break;
-                case UNTIL:
-                    //Not sure
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    R->guessedSolution[left]=MUST_FALSE;
-                    R->guessedSolution[right]=MUST_FALSE;
-                    break;
-                case WNTIL:
-                    //not sure
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    R->guessedSolution[left]=MUST_FALSE;
-                    R->guessedSolution[right]=MUST_FALSE;
-                    break;
-                case NOT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=MUST_TRUE;
-                    break;
-                default:
-                    R->guessedSolution[i]=MUST_FALSE;
-            }
-        }
-    }
-    cout<<"After first guess:";
-    for(i=0;i<closureCount;i++){
-        cout<<" "<<R->guessedSolution[i];
-    }
-    cout<<endl;
-}
-
-
-bool Guess(Computation_Tree_Node* R){
-    int i,j;
-    cout<<"Previous possible solution before guess:";
-    for(i=0;i<closureCount;i++){
-        cout<<" "<<R->guessedSolution[i];
-    }
-    cout<<endl;
-    bool carry;
-    carry=true;
-    for(i=closureCount-1;i>=0;i--){
-        if(carry){
-            if(R->guessedSolution[i]==TRUE_GUESSED_PHASE_1){
-                R->guessedSolution[i]=TRUE_GUESSED_PHASE_2;
-                carry=false;
-            }
-            else if(R->guessedSolution[i]==TRUE_GUESSED_PHASE_2){
-                R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                carry=true;
-            }
-            else if(R->guessedSolution[i]==FALSE_GUESSED_PHASE_1){
-                R->guessedSolution[i]=FALSE_GUESSED_PHASE_2;
-                carry=false;
-            }
-            else if(R->guessedSolution[i]==FALSE_GUESSED_PHASE_2){
-                R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                carry=true;
-            }
-        }
-    }
-    if(carry){
-        cout<<"No other possibility"<<endl;
         return false;
     }
-    cout<<"After guess:";
-    for(i=0;i<closureCount;i++){
-        cout<<R->guessedSolution[i]<<" ";
-    }
-    cout<<endl;
-
-    for(i=0;i<closureCount;i++){
-        cout<<"Rebuild a new guess tree"<<i<<": ";
-        for(j=0;j<closureCount;j++){
-            cout<<R->guessedSolution[j]<<" ";
-        }
-        cout<<endl;
-        if(R->guessedSolution[i]==MUST_TRUE){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_TRUE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=MUST_TRUE;
-                    if(R->guessedSolution[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_TRUE;
-                    }
-                    if(R->guessedSolution[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_TRUE;
-                    }
-                    break;
-                case UNTIL:
-                    //not sure
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_TRUE;
-                    }
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_TRUE;
-                    }
-                    break;
-                case NEXT:
-                    if(R->obligation[findNextClosure(Closure[i]->outs[0]->index)]==DONT_CARE){
-                        R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=DONT_CARE;
-                    }
-                    break;
-                case NOT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    if(R->obligation[findNextClosure(Closure[i]->outs[0]->index)]==DONT_CARE){
-                        R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=MUST_FALSE;
-                    }
-                    break;
-                default:
-                    R->guessedSolution[i]=MUST_TRUE;
-            }
-        }
-        else if(R->guessedSolution[i]==MUST_FALSE){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=MUST_FALSE;
-                    if(R->guessedSolution[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_FALSE;
-                    }
-                    if(R->guessedSolution[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_FALSE;
-                    }
-                    break;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_FALSE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_FALSE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_FALSE;
-                    }
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=MUST_FALSE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=MUST_FALSE;
-                    }
-                    break;
-                case NEXT:
-                    if(R->obligation[findNextClosure(Closure[i]->outs[0]->index)]==DONT_CARE){
-                        R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=DONT_CARE;
-                    }
-                    break;
-                case NOT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=MUST_TRUE;
-                    break;
-                default:
-                    R->guessedSolution[i]=MUST_FALSE;
-            }
-        }
-        else if(R->guessedSolution[i]==TRUE_GUESSED_PHASE_1){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_TRUE;}
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_TRUE;}
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_1;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_TRUE;}
-                    break;
-            }
-        }
-        else if(R->guessedSolution[i]==TRUE_GUESSED_PHASE_2){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_2;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_TRUE;}
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_2;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_TRUE;}
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=TRUE_GUESSED_PHASE_2;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_TRUE;}
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-            }
-        }
-        else if(R->guessedSolution[i]==FALSE_GUESSED_PHASE_1){
-            switch(Closure[i]->type){
-                int left,right;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_FALSE;}
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_FALSE;}
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_FALSE;}
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_1;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_FALSE;}
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_FALSE;}                                        
-                    break;
-            }
-        }
-        else if(R->guessedSolution[i]==FALSE_GUESSED_PHASE_2){
-            switch(Closure[i]->type){
-                int left,right;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_2;
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_FALSE;}
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_2;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_TRUE;}
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_FALSE;}
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    R->guessedSolution[i]=FALSE_GUESSED_PHASE_2;
-                    if(R->guessedSolution[left]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[left]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[left]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[left]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[left]=R->guessedSolution[left];
-                    }
-                    else{R->guessedSolution[left]=MUST_TRUE;}
-                    if(R->guessedSolution[right]==TRUE_GUESSED_PHASE_1 || R->guessedSolution[right]==TRUE_GUESSED_PHASE_2
-                    ||R->guessedSolution[right]==FALSE_GUESSED_PHASE_1 || R->guessedSolution[right]==FALSE_GUESSED_PHASE_2){
-                        R->guessedSolution[right]=R->guessedSolution[right];
-                    }
-                    else{R->guessedSolution[right]=MUST_FALSE;}
-                    break;
-            }
-        }
-        else if(R->guessedSolution[i]==DONT_CARE){
-            switch(Closure[i]->type){
-                int left,right;
-                case OR:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case AND:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case UNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case WNTIL:
-                    left=findNextClosure(Closure[i]->outs[0]->index);
-                    right=findNextClosure(Closure[i]->outs[1]->index);
-                    if(R->obligation[left]==DONT_CARE){
-                        R->guessedSolution[left]=DONT_CARE;
-                    }
-                    if(R->obligation[right]==DONT_CARE){
-                        R->guessedSolution[right]=DONT_CARE;
-                    }
-                    break;
-                case NEXT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    if(R->obligation[findNextClosure(Closure[i]->outs[0]->index)]==DONT_CARE){
-                        R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=DONT_CARE;
-                    }
-                    break;
-                case NOT:
-                    R->guessedSolution[i]=DONT_CARE;
-                    if(R->obligation[findNextClosure(Closure[i]->outs[0]->index)]==DONT_CARE){
-                        R->guessedSolution[findNextClosure(Closure[i]->outs[0]->index)]=DONT_CARE;
-                    }
-                    break;
-                default:
-                    R->guessedSolution[i]=DONT_CARE;
-            }
-        }
-    }
-    for(i=0;i<closureCount;i++){
-        cout<<" "<<R->guessedSolution[i];
-    }
-    cout<<endl;
     return true;
 }
 
-
-int checkLocalUnSAT(Computation_Tree_Node* R){
-    cout<<"check local"<<endl;
+int ComputationTreeNode::GetMaxNextHeight(){
     int i;
-    int checkVisitedResult;
-    checkVisitedResult=checkVisited(R);
-
-    if(checkVisitedResult==PASS){
-        cout<<"check local PASS"<<endl;    
-        return PASS;
-    }
-    else if(checkVisitedResult==FAIL){
-        cout<<"check local fail"<<endl;            
-        return FAIL;
-    }
-    else{
-        for(i=closureCount-1;i>=0;i--){
-            if(R->guessedSolution[i]!=DONT_CARE){
-                switch(Closure[i]->type){
-                    int left,right;
-                    case TRUE_NODE:
-                        if(R->guessedSolution[i]==MUST_FALSE){
-                            cout<<"check local fail "<<Closure[i]->index<<endl;                        
-                            return FAIL;
-                        }
-                    break;
-                    case FALSE_NODE:
-                        if(R->guessedSolution[i]==MUST_TRUE){
-                            cout<<"check local fail "<<Closure[i]->index<<endl;
-                            return FAIL;
-                        }
-                    break;
-                    case ATOMIC:
-                        char aaa[100];
-                        strcpy(aaa,Closure[i]->str.c_str());
-                        if(red_and(red_diagram(aaa),R->state->red)!=red_false()){
-                            if(R->guessedSolution[i]==MUST_FALSE){
-                                cout<<"check local fail "<<Closure[i]->index<<endl;    
-                                return FAIL;
-                            }
-                        }
-                        else{
-                            if(R->guessedSolution[i]==MUST_TRUE){
-                                cout<<"check local fail "<<Closure[i]->index<<endl;
-                                return FAIL;
-                            }
-                        }
-                    break;
-                }
-            }
+    int max = 0;
+    for(i=0;i<g_parse_count;i++){
+        if(this->obligation[i]!=DONT_CARE && max < g_parse_tree[i]->next_height){
+            max = g_parse_tree[i]->next_height;
         }
-        cout<<"check local continue"<<endl;
+    }
+    return max;
+}
+
+int ComputationTreeNode::CheckPath(){
+    cout<<"CheckPath: ";
+    int i,j;
+    vector<ComputationTreeNode*> repeated_node;
+    int temp_length=0;
+    int lasso_length=0;
+    ComputationTreeNode* parent_node;
+    parent_node = this->parent;
+    while(parent_node != NULL){
+        temp_length++;
+        if(!this->isDifferent(parent_node)){
+            lasso_length = lasso_length + temp_length;
+            temp_length = 0;
+            repeated_node.push_back(parent_node);
+        }
+        parent_node = parent_node->parent;
+    }
+
+    // there is no lasso
+    if(repeated_node.size()==0){
+        cout<<"Continue, no lasso"<<endl;
         return CONTINUE;
     }
-}
-
-
-bool Create_passDown(Computation_Tree_Node* R,bool &controlled){
-/*    cout<<"create pass down:"<<endl;
-    bool flag;
-    flag=false;
-    int i,j,x,y;
-    for(i=0;i<closureCount;i++){
-        cout<<R->guessedSolution[i]<<" ";
+    cout<<"lasso_length:"<< lasso_length << endl;
+    // has not reached the depth of next
+    if(this->GetMaxNextHeight() > lasso_length){
+        cout<<"Continue, lasso shorter than NEXT depth."<<endl;
+        return CONTINUE;
     }
-    cout<<endl;
-    for(i=0;i<closureCount;i++){
-        cout<<R->passed[i]<<" ";
+
+    // MUST_TRUE UNTIL and MUST_FALSE WNTIL cannot be always passed down in a lasso
+    // prepare unitl_array
+    bool isUNTIL = false;
+    vector<int> until_array = vector<int>(g_parse_count,-1);
+    for(i=0;i<g_parse_count;i++){
+        if((this->all_possible_guess[this->current_guess][i] == GUESSED_UNTIL_TRUE
+            && g_parse_tree[i]->type == UNTIL)
+            || (this->all_possible_guess[this->current_guess][i] == GUESSED_UNTIL_FALSE
+            && g_parse_tree[i]->type == WNTIL)){
+            isUNTIL = true;
+            until_array[i] = 0;
+        }
     }
-    cout<<endl;    
-    for(i=0;i<closureCount;i++){
-        if(R->passed[i]==false && ((R->guessedSolution[i]==MUST_TRUE && Closure[i]->type==NEXT)
-            ||(R->guessedSolution[i]==MUST_FALSE && Closure[i]->type==NEXT)
-            ||(R->guessedSolution[i]==TRUE_GUESSED_PHASE_2 &&(Closure[i]->type==UNTIL || Closure[i]->type==WNTIL))
-            ||(R->guessedSolution[i]==FALSE_GUESSED_PHASE_2 && (Closure[i]->type==UNTIL || Closure[i]->type==WNTIL)))){
-            flag=true;
-            x=i;
-            cout<<"closure "<<i;
-            for(j=0;j<strategyCount;j++){
-                if(Matrix[j][i]==1 && strategy2owner[j]==R->state->owner){
-                    y=j;
-                    controlled=true;
-                    cout<<" controlled by strategy "<<j<<" of player "<<strategy2owner[j]<<endl;
-                }
-                else {
-                    controlled==false;
-                    cout<<" uncontrolled"<<endl;
+    if(!isUNTIL){
+        cout<<"PASS, no MUST_TRUE_UNTIL or MUST_FALSE_WNTIL exists."<<endl;
+        return PASS;
+    }
+    // pass up unitl_array
+    parent_node = this->parent;
+    for(i=0;i<repeated_node.size();i++){
+        bool something_satisfied;
+        something_satisfied = false;
+        while(parent_node != repeated_node[i]){
+            // check all the entry in until_array
+            for(j=0;j<g_parse_count;j++){
+                if(until_array[j] != -1
+                    && parent_node->all_possible_guess[parent_node->current_guess][j] < GUESSED_UNTIL_TRUE){
+                    something_satisfied = true;
+                    // label: satisfied by sub-lasso i + 1
+                    until_array[j] = i + 1;
                 }
             }
+            parent_node = parent_node->parent;
         }
-        if(flag==true){
+        if(!something_satisfied){
+            cout<<"no UNTIL is satisfied in current sub-lasso"<<endl;
+            return FAIL;
+        }
+    }
+    bool satisfied_something_new = false;
+    bool some_until_left = false;
+    for(i=0;i<g_parse_count;i++){
+        if(until_array[i] == 0){
+            some_until_left = true;
+        } else if(until_array[i] == 1){
+            satisfied_something_new = true;
+        }
+    }
+    if(!some_until_left){
+        cout<<"PASS, all until satisfied.";
+        return PASS;
+    } else if(satisfied_something_new){
+        cout<<"CONTINUE, still some until are unsat.";
+        return CONTINUE;
+    }
+    cout<<"FAIL, current sub-lasso dosent satisfied any new UNTIL";
+    return FAIL;
+}
+
+bool ComputationTreeNode::CreatePassDown() {
+    int i;
+
+    bool something_to_pass_down;
+    something_to_pass_down = false;
+
+    for (i = 0; i < g_parse_count; i++) {
+        if (this->all_possible_guess[this->current_guess][i] == PASS_DOWN_MUST_TRUE
+                || this->all_possible_guess[this->current_guess][i] == PASS_DOWN_AND_MUST_TRUE
+                || this->all_possible_guess[this->current_guess][i] == GUESSED_UNTIL_TRUE) {
+            something_to_pass_down = true;
+            this->pass_down[i] = MUST_TRUE;
+        } else if (this->all_possible_guess[this->current_guess][i] == PASS_DOWN_MUST_FALSE
+                   || this->all_possible_guess[this->current_guess][i] == PASS_DOWN_AND_MUST_FALSE
+                   || this->all_possible_guess[this->current_guess][i] == GUESSED_UNTIL_FALSE) {
+            something_to_pass_down = true;
+            this->pass_down[i] = MUST_FALSE;
+        } else {
+            continue;
+        }
+    }
+    return something_to_pass_down;
+}
+
+void ComputationTreeNode::GetFirstStrategySelection() {
+    int i, j;
+    i = 0;
+
+    cout << "current owner " << this->state->owner << endl;
+    cout << "number of children " << this->state->outs.size() << endl;
+    cout << "pass_down:";
+    for (i = 0; i < g_parse_count; i++) {
+        cout << this->pass_down[i] << " ";
+    }
+    cout << endl;
+
+    this->strategy_selection.clear();
+
+    vector<int> involved_owner_strategy = vector<int>(g_strategy_count, 0);
+    i = 0;
+    while (i < g_parse_count) {
+        if (this->pass_down[i] == DONT_CARE) {
+            i++;
+            continue;
+        }
+        //copy the corresponding column from g_strategy_formula_matrix
+        for (j = 0; j < g_strategy_count; j++) {
+            if (g_strategy_formula_matrix[j][i] == 1
+                    && g_strategy_to_owner[j] == this->state->owner) {
+                involved_owner_strategy[j] = 1;
+            }
+        }
+        i++;
+    }
+    for (i = 0; i < g_strategy_count; i++) {
+        if (involved_owner_strategy[i] == 1) {
+            this->strategy_selection[i] = 0;
+        }
+    }
+}
+
+bool ComputationTreeNode::GetNextStrategySelection() {
+    for (map<int, int>::iterator it = strategy_selection.begin(); it != strategy_selection.end(); ++it) {
+        if (it->second == this->state->outs.size() - 1) {
+            it->second = 0;
+        } else {
+            it->second++;
             break;
         }
     }
-    if(flag==false){ 
-        cout<<"nothing to pass down"<<endl;
-        return false;
-    }
-    cout<<x<<" "<<y<<endl;
-    for(i=0;i<closureCount;i++){
-        R->passDown[i]=DONT_CARE;
-    }
-    if(controlled==true){
-        for(i=0;i<closureCount;i++){
-            if(Matrix[y][i]==1 && R->guessedSolution[i]==MUST_TRUE && Closure[i]->type==NEXT && R->passed[i]==false){
-        R->passDown[i]=DONT_CARE;
-        R->passDown[findNextClosure(Closure[i]->outs[0]->index)]=MUST_TRUE;
-        R->passed[i]=true;
-            }
-      else if(Matrix[y][i]==1 && R->guessedSolution[i]==TRUE_GUESSED_PHASE_2 && (Closure[i]->type==UNTIL || Closure[i]->type==WNTIL)&& R->passed[i]==false){
-                R->passDown[i]=MUST_TRUE;
-        R->passed[i]=true;
-            }
-            else if(Matrix[y][i]==1 && R->guessedSolution[i]==MUST_FALSE && Closure[i]->type==NEXT&& R->passed[i]==false){
-        R->passDown[i]=DONT_CARE;
-        R->passDown[findNextClosure(Closure[i]->outs[0]->index)]=MUST_FALSE;
-        R->passed[i]=true;
-        }
-      else if(Matrix[y][i]==1 && R->guessedSolution[i]==FALSE_GUESSED_PHASE_2 && (Closure[i]->type==UNTIL || Closure[i]->type==WNTIL) && R->passed[i]==false){
-            R->passDown[i]=MUST_FALSE;
-        R->passed[i]=true;
-            }
-        }
-    }
-    else{
-        for(i=0;i<closureCount;i++){
-            R->passDown[i]=DONT_CARE;
-        }
-    if(R->guessedSolution[x]==MUST_TRUE && Closure[x]->type==NEXT && R->passed[i]==false){
-      R->passDown[x]=DONT_CARE;
-      R->passDown[findNextClosure(Closure[x]->outs[0]->index)]=MUST_TRUE;
-            R->passed[x]=true;
-    }
-    else if(R->guessedSolution[x]==TRUE_GUESSED_PHASE_2 && (Closure[x]->type==UNTIL || Closure[x]->type==WNTIL) && R->passed[i]==false){
-      R->passDown[x]=MUST_TRUE;
-            R->passed[x]=true;
-    }
-    else if(R->guessedSolution[x]==MUST_FALSE && Closure[x]->type==NEXT && R->passed[i]==false){
-      R->passDown[x]=DONT_CARE;
-      R->passDown[findNextClosure(Closure[x]->outs[0]->index)]=MUST_FALSE;
-            R->passed[x]=true;
-    }
-    else if(R->guessedSolution[x]==FALSE_GUESSED_PHASE_2 && (Closure[i]->type==UNTIL || Closure[i]->type==WNTIL) && R->passed[i]==false){
-      R->passDown[x]=MUST_FALSE;
-            R->passed[x]=true;
-    }
-    }
-    cout<<"pass down created:";    
-    for(i=0;i<closureCount;i++){
-        cout<<R->passDown[i]<<" ";
-    }
-    cout<<endl;
-    for(i=0;i<closureCount;i++){
-        cout<<R->passed[i]<<" ";
-    }
-    cout<<endl;
-    return true;*/
 }
 
+void ComputationTreeNode::PrintStrategySelection() {
+    int i;
+    cout << "strategy_selection:" << endl;
+    for (map<int, int>::iterator it = strategy_selection.begin(); it != strategy_selection.end(); ++it) {
+        cout << it->first << " => " << it->second << endl;
+    }
+}
 
-bool Check_TCL(Computation_Tree_Node* R){
-    int i,j;
-    int localCheckResult;    
-    cout<<"check TCL on: "<<red_diagram_string(R->state->red)<<endl;
-    cout<<"obligation: ";
-    for(i=0;i<closureCount;i++){
-        cout<<R->obligation[i]<<" ";
-    }
-    cout<<endl;
-    guessFirstPossibleSolution(R);
-    localCheckResult=checkLocalUnSAT(R);
-    
-    if(localCheckResult==PASS){
-        if(debugCheckTCL){
-            cout<<"checkTCL PASS(local)"<<endl;
-        }
-        return true;
-    }
-    /*
-    else if(localCheckResult==FAIL){
-        while(Guess(R)){
-            localCheckResult=checkLocalUnSAT(R);
-            if(localCheckResult==PASS){
-                cout<<"Check_TCL true"<<endl;
-                return true;
-            }            
-            else if(localCheckResult==CONTINUE){
-                for(i=0;i<closureCount;i++){
-                    R->passed[i]=false;
-                }
-                bool controlled=false;
-            bool guess_fail;
-            guess_fail=false;
-                while(Create_passDown(R,controlled) && !guess_fail){
-                    bool passDown_success;
-                    passDown_success=false;
-                    for(i=0;i<R->state->outs.size();i++){
-              if(!passDown_success){
-                        cout<<"check child "<<i+1<<"/"<<R->state->outs.size()<<endl;
-                Computation_Tree_Node* R2=new Computation_Tree_Node;
-                R2->state=R->state->outs[i]->dst;
-                R2->ins=R;
-                R->outs.push_back(R2);
-                for(j=0;j<closureCount;j++){
-                    R2->obligation[j]=R->passDown[j];
-                }
-                R2->until_token_old=R->until_token;
-                if(controlled){
-                    if(Check_TCL(R2)){
-                    guess_fail=false;
-                    passDown_success=true;
-                    }
-                } 
-                else{
-                  if(!Check_TCL(R2)){
-                    guess_fail=true;
-                    cout<<"guess_fail"<<endl;
-                  }
-                }
+bool ComputationTreeNode::PassDown() {
+    int i, j, k;
+    for (i = 0; i < this->state->outs.size(); i++) {
+        ComputationTreeNode child = ComputationTreeNode();
+        child.parent = this;
+        child.state = this->state->outs[i]->dst;
+        //prepare the obligation of child
+        for (j = 0; j < g_parse_count; j++) {
+            if (this->pass_down[j] == DONT_CARE) {
+                child.obligation[j] = DONT_CARE;
+                continue;
+            } else {
+                bool is_controllable = false;
+                bool is_target = false;
+                for (k = 0; k < g_strategy_count; k++) {
+                    if (g_strategy_formula_matrix[k][j] == 1
+                            && g_strategy_to_owner[k] == this->state->owner) {
+                        is_controllable = true;
+                        if (strategy_selection[k] == i) {
+                            is_target = true;
+                            child.obligation[j] = this->pass_down[j];
+                            break;
                         }
                     }
-                    if(controlled && !passDown_success){guess_fail=true;}
                 }
-                if(!guess_fail){
-              cout<<"guess success"<<endl;
+                if (!is_controllable) {
+                    child.obligation[j] = this->pass_down[j];
+                } else if (!is_target) {
+                    child.obligation[j] = DONT_CARE;
+                }
+            }
+        }
+        if(!child.CheckTCL()){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ComputationTreeNode::CheckTCL() {
+    cout << "CheckTCL:" << endl;
+    cout << red_diagram_string(this->state->red)<<endl;
+    int i;
+    for (i = 0; i < g_parse_count; i++) {
+        cout << this->obligation[i] << " ";
+    }
+    cout << endl;
+    this->ListAllPossibleGuess();
+    this->PrintAllPossibleGuess();
+    this->CheckLocal();
+    this->PrintAllPossibleGuess();
+    for (i = 0; i < this->all_possible_guess.size(); i++) {
+        this->current_guess = i;
+        if (!this->CreatePassDown()) {
+            cout << "Nothing to pass down." << endl;
+            cout << "<<<<<<<<<<<<<<<<<"<<endl;
             return true;
-                }
-            }
-            else{
-        cout<<"guess_fail"<<endl;
-      }
         }
-    }
-    else if(localCheckResult==CONTINUE){
-        for(i=0;i<closureCount;i++){
-            R->passed[i]=false;
+        int check_path_result;
+        check_path_result = this->CheckPath();
+        if (check_path_result == PASS) {
+            cout << "<<<<<<<<<<<<<<<<<"<<endl;
+            return true;
+        } else if (check_path_result == FAIL) {
+            continue;
         }
-    bool controlled=false;
-    bool guess_fail;
-    guess_fail=false;        
-        while(Create_passDown(R,controlled) && !guess_fail){
-            bool passDown_success;
-            passDown_success=false;
-            for(i=0;i<R->state->outs.size();i++){
-        if(!passDown_success){
-                cout<<"check child "<<i+1<<"/"<<R->state->outs.size()<<endl;
-          Computation_Tree_Node* R2=new Computation_Tree_Node;
-          R2->state=R->state->outs[i]->dst;
-          R2->ins=R;
-          R->outs.push_back(R2);
-          for(j=0;j<closureCount;j++){
-            R2->obligation[j]=R->passDown[j];
-          }
-             R2->until_token_old=R->until_token;
-          if(controlled){
-            if(Check_TCL(R2)){
-              guess_fail=false;
-              passDown_success=true;
-            }
-          }
-          else{
-            if(!Check_TCL(R2)){
-              guess_fail=true;
-              cout<<"guess_fail"<<endl;
-            }
-          }
-                }
-            }
-            if(controlled && !passDown_success){guess_fail=true;}
-        }
-    if(!guess_fail){
-      cout<<"guess success"<<endl;
-      return true;
-    }
-    else{
-        guess_fail=false;
-      while(Guess(R)){
-                localCheckResult=checkLocalUnSAT(R);
-                if(localCheckResult==PASS){
-                    cout<<"Check_TCL true"<<endl;
-                    return true;
-                }            
-                else if(localCheckResult==CONTINUE){
-                    for(i=0;i<closureCount;i++){
-                        R->passed[i]=false;
-                    }
-            bool controlled=false;
-                    while(Create_passDown(R,controlled) && !guess_fail){
-                        bool passDown_success;
-                        passDown_success=false;
-                        for(i=0;i<R->state->outs.size();i++){
-                    if(!passDown_success){
-                            cout<<"check child "<<i+1<<"/"<<R->state->outs.size()<<endl;
-                      Computation_Tree_Node* R2=new Computation_Tree_Node;
-                      R2->state=R->state->outs[i]->dst;
-                      R2->ins=R;
-                      R->outs.push_back(R2);
-                      for(j=0;j<closureCount;j++){
-                        R2->obligation[j]=R->passDown[j];
-                      }
-                    R2->until_token_old=R->until_token;
-                      if(controlled){
-                        if(Check_TCL(R2)){
-                          guess_fail=false;
-                          passDown_success=true;
-                        }
-                      }
-                      else{
-                        if(!Check_TCL(R2)){
-                          guess_fail=true;
-                          cout<<"guess_fail"<<endl;
-                        }
-                      }
-                            }
-                        }
-                        if(controlled && !passDown_success){guess_fail=true;}
-                    }
-            if(!guess_fail){
-                cout<<"guess success"<<endl;
+
+        // Pass down according to strategy selection
+        this->GetFirstStrategySelection();
+        do {
+            this->PrintStrategySelection();
+            cout<<">>>>>>>>>>>>>>>>>>>>"<<endl;
+            if (this->PassDown()) {
+                cout << "All PassDown"<<endl;
+                cout << "<<<<<<<<<<<<<<<<<"<<endl;
                 return true;
             }
-          }
-          else{
-          cout<<"guess_fail"<<endl;
-        }
-      }
+        } while (this->GetNextStrategySelection());
     }
-    }
-    */
+    cout<<"no possible guess satisfied."<<endl;
+    cout << "<<<<<<<<<<<<<<<<<"<<endl;
+    return false;
 }
 
+void PrintGameGraph(TCLGameNode* root) {
+    cout << root->index << ": " << red_diagram_string(root->red) << endl;
+    int i;
+    int lb, hb;
+    TCLGameEdge* temp_edge;
+    TCLGameNode* temp_node;
+    string temp_string;
+    for (i = 1; i < g_sxi_count; i++) {
+        redgram temp_red = red_sync_xtion_fwd(
+                               root->red,
+                               path,
+                               RED_USE_DECLARED_SYNC_XTION,
+                               i,
+                               RED_GAME_MODL | RED_GAME_SPEC | RED_GAME_ENVR,
+                               RED_TIME_PROGRESS,
+                               RED_NORM_ZONE_CLOSURE,
+                               RED_NO_ACTION_APPROX,
+                               RED_REDUCTION_INACTIVE,
+                               RED_NOAPPROX_MODL_GAME | RED_NOAPPROX_SPEC_GAME
+                               | RED_NOAPPROX_ENVR_GAME | RED_NOAPPROX_GLOBAL_GAME,
+                               RED_NO_SYMMETRY,
+                               0);
+        if (red_and(temp_red, red_query_diagram_enhanced_global_invariance()) != red_false()) {
+            if (node_map[temp_string.assign(red_diagram_string(temp_red))] == 0) {
+                temp_edge = new TCLGameEdge;
+                temp_node = new TCLGameNode;
+                temp_edge->sxi = i;
+                temp_edge->src = root;
+                temp_edge->dst = temp_node;
+                root->outs.push_back(temp_edge);
+                temp_node->index = g_node_count;
+                g_node_count++;
+                temp_node->red = temp_red;
+                red_get_cube_discrete_value(temp_node->red, input_owner, &lb, &hb);
+                temp_node->owner = lb;
+                temp_node->ins.push_back(temp_edge);
+                g_nodes.push_back(temp_node);
+                node_map[temp_string.assign(red_diagram_string(temp_red))] = temp_node->index;
+                cout << root->index << "--" << temp_edge->sxi << "-->" << temp_node->index << endl;
+                PrintGameGraph(temp_node);
+            } else {
+                temp_node = g_nodes[node_map[temp_string.assign(red_diagram_string(temp_red))]];
+                temp_edge = new TCLGameEdge;
+                temp_edge->sxi = i;
+                temp_edge->src = root;
+                temp_edge->dst = temp_node;
+                root->outs.push_back(temp_edge);
+                temp_node->ins.push_back(temp_edge);
+                cout << root->index << "--" << temp_edge->sxi << "-->" << temp_node->index << endl;
+            }
+        }
+    }
+}
 
-int main(int argc,char** argv) {
-    int i,j,k;
-    //i,j,k XDrz
-    
-    sxiCount=0;
-    nodeCount=0;
-    strategyCount=0;
-    closureCount=0;
-    parseCount=0;
-    type_map[TRUE_NODE]="TRUE";
-    type_map[FALSE_NODE]="FALSE";
-    type_map[PARSE_ROOT]="ROOT";
-    type_map[ATOMIC]="ATOMIC";
-    type_map[NOT]="NOT";
-    type_map[OR]="OR";
-    type_map[AND]="AND";
-    type_map[PLUS]="PLUS";
-    type_map[MINUS]="MINUS";
-    type_map[UNTIL]="UNTIL";
-    type_map[WNTIL]="WNTIL";
-    type_map[NEXT]="NEXT";    
-    //Initial global variables
+void PrintParseTree(TCLFormula* F, int depth) {
+    int i;
+    for (i = 0; i < depth; i++) {
+        cout << "  ";
+    }
+    cout << F->index << " " << type_map[F->type] << " ";
+    if (F->type == ATOMIC) {cout << F->str;}
+    else if (F->type == PARSE_ROOT || F->type == PLUS) {cout << F->owner;}
+    cout << endl;
+    for (i = 0; i < F->outs.size(); i++) {
+        PrintParseTree(F->outs[i], depth + 1);
+    }
+}
 
-    red_begin_session(RED_SYSTEM_TIMED, argv[1], -1);    
-        //-1 == default(process number)
+void PrintMatrix() {
+    int i, j;
+    cout << setw(24) << " strategy_formula_matrix";
+    for (i = 0; i < g_parse_count; i++) {
+        cout << setw(3) << g_parse_tree[i]->index;
+    }
+    cout << endl;
+    for (i = 0; i < g_strategy_count; i++) {
+        string temp_string;
+        stringstream ss(temp_string);
+        ss << i << "(" << g_strategy_to_owner[i] << ")";
+        cout << setw(24) << ss.str();
+        for (j = 0; j < g_parse_count; j++) {
+            cout << setw(3) << g_strategy_formula_matrix[i][j];
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void FillMatrix(TCLFormula* F, int* inheritedStrategy) {
+    int i;
+    int* currentStrategy = new int[g_strategy_count]();
+    for (i = 0; i < g_strategy_count; i++) {
+        currentStrategy[i] = inheritedStrategy[i];
+    }
+
+    // start preparing currentStrategy
+    // clean previous strategy with the same owner
+    if (F->type == PLUS || F->type == MINUS) {
+        for (i = 0; i < g_strategy_count; i++) {
+            if (g_strategy_to_owner[i] == F->owner) {
+                currentStrategy[i] = 0;
+            }
+        }
+    }
+    // Add current owner's strategy
+    if (F->type == PARSE_ROOT || F->type == PLUS || F->type == MINUS) {
+        currentStrategy[F->strategy_index] = 1;
+    }
+    // finish preparing currentStrategy
+
+    // fill the matrix according to currentStrategy
+    for (i = 0; i < g_strategy_count; i++) {
+        g_strategy_formula_matrix[i][F->index] = currentStrategy[i];
+    }
+
+    // 1 way pass down if needed
+    if (F->type == PARSE_ROOT || F->type == PLUS || F->type == MINUS
+            || F->type == NOT || F->type == NEXT) {
+        FillMatrix(F->outs[0], currentStrategy);
+    }
+
+    // 2 ways pass down if needed
+    if (F->type == OR || F->type == AND || F->type == UNTIL
+            || F->type == WNTIL) {
+        FillMatrix(F->outs[0], currentStrategy);
+        FillMatrix(F->outs[1], currentStrategy);
+    }
+    delete currentStrategy;
+}
+
+void SetupMatrix() {
+    int i, j;
+    g_strategy_formula_matrix = new int*[g_strategy_count];
+    for (i = 0; i < g_strategy_count; i++) {
+        g_strategy_formula_matrix[i] = new int[g_parse_count]();
+    }
+}
+
+void PrintStrategy2owner() {
+    int i;
+    cout << "g_strategy_to_owner:" << endl;
+    for (i = 0; i < g_strategy_to_owner.size(); i++) {
+        cout << g_strategy_to_owner[i] << " ";
+    }
+    cout << endl;
+}
+
+void SetupTCLFormula(TCLFormula* F) {
+    int i;
+    F->next_height=0;
+    g_parse_tree.push_back(F);
+    F->index = g_parse_count;
+    g_parse_count++;
+    if (F->type == PARSE_ROOT || F->type == PLUS) {
+        g_strategy_to_owner.push_back(F->owner);
+        F->strategy_index = g_strategy_count;
+        g_strategy_count++;
+    } else if (F->type == MINUS) {
+        F->strategy_index = -1;
+    } else {
+        F->strategy_index = 0;
+    }
+    for (i = 0; i < F->outs.size(); i++) {
+        SetupTCLFormula(F->outs[i]);
+    }
+    for (i = 0; i < F->outs.size(); i++) {
+        if(F->next_height < F->outs[i]->next_height){
+            F->next_height = F->outs[i]->next_height;
+        }
+    }
+    if(F->type == NEXT){
+        F->next_height++;
+    }
+}
+
+int main(int argc, char** argv) {
+    int i, j, k;
+    int lb, hb;
+    string temp_string;
+    g_sxi_count = 0;
+    g_node_count = 1;
+    g_strategy_count = 0;
+    g_parse_count = 0;
+    g_parse_count = 0;
+    //initialize global variables
+
+    red_begin_session(RED_SYSTEM_TIMED, argv[1], -1); // -P n; n = process number, -1 == default
     red_input_model(argv[1], RED_REFINE_GLOBAL_INVARIANCE);
-    red_set_sync_bulk_depth(10); 
-        //number of transitions can be involve into a synchronize transition
-    TCL_Game_Node* root;
-    root=new TCL_Game_Node;
-    root->index= nodeCount;
-    root->red=red_query_diagram_initial();    
-    //Initial root for the model
-    
-    Nodes.push_back(root);    nodeCount++;
-    node_map[temp_string.assign(red_diagram_string(root->red))]=root->index;
-    //Add root into list
-        
-    path=red_query_diagram_enhanced_global_invariance();
-    sxiCount=red_query_sync_xtion_count(RED_USE_DECLARED_SYNC_XTION); 
-    //number of synchronize transitions in the model
-    
-    cout<<endl;
-    extractModelFromFile(root);
-    labelPlayerSelectionOnEdge(root);
-    printGameGraph();
+    red_set_sync_bulk_depth(3);
+    //read in the model
+
+    TCLGameNode* root;
+    root = new TCLGameNode;
+    g_nodes.push_back(root);  //dummy one
+    g_nodes.push_back(root);
+    root->red = red_query_diagram_initial();
+    red_get_cube_discrete_value(root->red, input_owner, &lb, &hb);
+    root->owner = lb;
+    root->index = g_node_count; g_node_count++;
+    node_map[temp_string.assign(red_diagram_string(root->red))] = root->index;
+    path = red_query_diagram_enhanced_global_invariance();
+    g_sxi_count = red_query_sync_xtion_count(RED_USE_DECLARED_SYNC_XTION);
+    type_map[TRUE_NODE] = "TRUE";
+    type_map[FALSE_NODE] = "FALSE";
+    type_map[PARSE_ROOT] = "ROOT";
+    type_map[ATOMIC] = "ATOMIC";
+    type_map[NOT] = "NOT";
+    type_map[OR] = "OR";
+    type_map[AND] = "AND";
+    type_map[PLUS] = "PLUS";
+    type_map[MINUS] = "MINUS";
+    type_map[UNTIL] = "UNTIL";
+    type_map[WNTIL] = "WNTIL";
+    type_map[NEXT] = "NEXT";
+    //initial variables
+
+    cout << endl;
+    PrintGameGraph(root);
     //Draw the graph
 
-    if(argc>2){
-        FILE *infile = fopen(argv[2], "r");
-        yyin=infile;
-        do {
-            yyparse();
-        } while (!feof(yyin));
-        Setup_TCL_Formula(ROOT_ptr);
-        print_strategy2owner();
-        setupMatrix();
-        fill_in_matrix(Parse_Tree[0]);
-        print_matrix();
-        print_parse_tree(Parse_Tree[0],0);
-    }
-    else{
-        cout<<"No input TCL formula"<<endl;
-        return 0;
-    }
-    //Read in the formula    
+    FILE *infile = fopen(argv[2], "r");
+    yyin = infile;
+    do {
+        yyparse();
+    } while (!feof(yyin));
 
-    Computation_Tree_Node* R =new Computation_Tree_Node;
-    R->ins=NULL;
-    R->state=root;
-    R->until_token_old=0;
-    for(i=0;i<closureCount;i++){
-        R->obligation[i]=DONT_CARE;
-    }
-    R->obligation[0]=MUST_TRUE;
-    //Initialize computation tree
+    SetupTCLFormula(g_parse_root);
 
-    Check_TCL(R);
-    //BJ4
-    
+    PrintStrategy2owner();
+
+    SetupMatrix();
+
+    int* currentStrategy = new int[g_strategy_count]();
+
+    FillMatrix(g_parse_tree[0], currentStrategy);
+
+    PrintMatrix();
+    PrintParseTree(g_parse_tree[0], 0);
+    //read in the formula
+
+    ComputationTreeNode* R = new ComputationTreeNode;
+    R->parent = NULL;
+    R->state = root;
+    R->obligation[0] = MUST_TRUE;
+    //Init computation tree
+
+    //CheckTCL(R);
+    cout << "Start Guessing" << endl;
+    cout << R->CheckTCL() << endl;
+
     return 0;
 }
-
-
-
 

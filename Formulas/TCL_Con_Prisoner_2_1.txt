@@ -1,1 +1,0 @@
-<1>((TRUE) U ((~( ( 'prisoner_2_state==1' ) U (FALSE) ) ) || (<+2>( (TRUE) U ( 'prisoner_1_state==0' ) ) ) ))

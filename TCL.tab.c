@@ -68,14 +68,14 @@
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
-extern TCL_Formula* ROOT_ptr;
+extern TCLFormula* g_parse_root;
 
 
 
 void yyerror(const char *s) {
-    cout << "EEK, parse error!  Message: " << s << endl;
-    // might as well halt now:
-    exit(-1);
+	cout << "EEK, parse error!  Message: " << s << endl;
+	// might as well halt now:
+	exit(-1);
 }
 
 #line 82 "TCL.tab.c" /* yacc.c:339  */
@@ -137,7 +137,7 @@ union YYSTYPE
 {
 #line 17 "TCL.y" /* yacc.c:355  */
 
-    TCL_Formula* ptr;
+	TCLFormula* ptr;
 
 #line 143 "TCL.tab.c" /* yacc.c:355  */
 };
@@ -1247,33 +1247,33 @@ yyreduce:
         case 2:
 #line 39 "TCL.y" /* yacc.c:1646  */
     {
-                                (yyvsp[-3].ptr)->type=PARSE_ROOT;
-                                (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-                                (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-                                ROOT_ptr=(yyvsp[-3].ptr);
-                            }
+								(yyvsp[-3].ptr)->type=PARSE_ROOT;
+								(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+								(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+								g_parse_root=(yyvsp[-3].ptr);
+							}
 #line 1256 "TCL.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
 #line 50 "TCL.y" /* yacc.c:1646  */
     {
-                            (yyvsp[-3].ptr)->type=PLUS;
-                            (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-                            (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-                            (yyval.ptr)=(yyvsp[-3].ptr);
-                        }
+							(yyvsp[-3].ptr)->type=PLUS;
+							(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+							(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+							(yyval.ptr)=(yyvsp[-3].ptr);
+						}
 #line 1267 "TCL.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
 #line 56 "TCL.y" /* yacc.c:1646  */
     {
-                            (yyvsp[-3].ptr)->type=MINUS;
-                            (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-                            (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-                            (yyval.ptr)=(yyvsp[-3].ptr);
-                        }
+							(yyvsp[-3].ptr)->type=MINUS;
+							(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+							(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+							(yyval.ptr)=(yyvsp[-3].ptr);
+						}
 #line 1278 "TCL.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1286,12 +1286,12 @@ yyreduce:
   case 6:
 #line 63 "TCL.y" /* yacc.c:1646  */
     {
-        (yyvsp[-3].ptr)->type=AND;
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-        (yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyval.ptr)=(yyvsp[-3].ptr);
+    	(yyvsp[-3].ptr)->type=AND;
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+    	(yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyval.ptr)=(yyvsp[-3].ptr);
     }
 #line 1297 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1299,12 +1299,12 @@ yyreduce:
   case 7:
 #line 71 "TCL.y" /* yacc.c:1646  */
     {
-        (yyvsp[-3].ptr)->type=OR;
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-        (yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyval.ptr)=(yyvsp[-3].ptr);
+    	(yyvsp[-3].ptr)->type=OR;
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+    	(yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyval.ptr)=(yyvsp[-3].ptr);
     }
 #line 1310 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1312,12 +1312,12 @@ yyreduce:
   case 8:
 #line 80 "TCL.y" /* yacc.c:1646  */
     {
-        (yyvsp[-3].ptr)->type=UNTIL;
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-        (yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyval.ptr)=(yyvsp[-3].ptr);
+    	(yyvsp[-3].ptr)->type=UNTIL;
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+    	(yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyval.ptr)=(yyvsp[-3].ptr);
     }
 #line 1323 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1325,12 +1325,12 @@ yyreduce:
   case 9:
 #line 88 "TCL.y" /* yacc.c:1646  */
     {
-        (yyvsp[-3].ptr)->type=WNTIL;
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
-        (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-        (yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-        (yyval.ptr)=(yyvsp[-3].ptr);
+    	(yyvsp[-3].ptr)->type=WNTIL;
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-5].ptr));
+    	(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+    	(yyvsp[-5].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+    	(yyval.ptr)=(yyvsp[-3].ptr);
     }
 #line 1336 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1338,30 +1338,30 @@ yyreduce:
   case 10:
 #line 96 "TCL.y" /* yacc.c:1646  */
     {
-            (yyvsp[-3].ptr)->type=NEXT;
-            (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-            (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-            (yyval.ptr)=(yyvsp[-3].ptr);
-        }
+			(yyvsp[-3].ptr)->type=NEXT;
+			(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+			(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+			(yyval.ptr)=(yyvsp[-3].ptr);
+		}
 #line 1347 "TCL.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 102 "TCL.y" /* yacc.c:1646  */
     {
-            (yyvsp[-3].ptr)->type=NOT;
-            (yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
-            (yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
-            (yyval.ptr)=(yyvsp[-3].ptr);
-        }
+			(yyvsp[-3].ptr)->type=NOT;
+			(yyvsp[-3].ptr)->outs.push_back((yyvsp[-1].ptr));
+			(yyvsp[-1].ptr)->ins.push_back((yyvsp[-3].ptr));
+			(yyval.ptr)=(yyvsp[-3].ptr);
+		}
 #line 1358 "TCL.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
 #line 108 "TCL.y" /* yacc.c:1646  */
     {
-            (yyvsp[0].ptr)->type=TRUE_NODE;
-            (yyval.ptr)=(yyvsp[0].ptr);
+			(yyvsp[0].ptr)->type=TRUE_NODE;
+			(yyval.ptr)=(yyvsp[0].ptr);
     }
 #line 1367 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1369,8 +1369,8 @@ yyreduce:
   case 13:
 #line 112 "TCL.y" /* yacc.c:1646  */
     {
-            (yyvsp[0].ptr)->type=FALSE_NODE;
-            (yyval.ptr)=(yyvsp[0].ptr);
+			(yyvsp[0].ptr)->type=FALSE_NODE;
+			(yyval.ptr)=(yyvsp[0].ptr);
     }
 #line 1376 "TCL.tab.c" /* yacc.c:1646  */
     break;
@@ -1378,8 +1378,8 @@ yyreduce:
   case 14:
 #line 116 "TCL.y" /* yacc.c:1646  */
     {
-        (yyvsp[0].ptr)->type=ATOMIC;
-        (yyval.ptr)=(yyvsp[0].ptr);    
+    	(yyvsp[0].ptr)->type=ATOMIC;
+    	(yyval.ptr)=(yyvsp[0].ptr);    
     }
 #line 1385 "TCL.tab.c" /* yacc.c:1646  */
     break;

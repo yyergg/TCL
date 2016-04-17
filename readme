@@ -1,0 +1,8 @@
+The binary file "TCL" should work on ubuntu 15.04.
+
+To build the code in Ubuntu 15.04, you have to install following packages first:
+sudo apt-get install flex bison
+sudo apt-get install g++-5-multilib
+
+command to run:
+./TCL model_file formula_file
