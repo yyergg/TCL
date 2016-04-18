@@ -1,0 +1,4 @@
+<1>(<+2>(X(
+(((TRUE)U('prisoner_free@(1)'))||(<-1>(('prisoner_jail@(1)')W(FALSE))))
+&&(((TRUE)U('prisoner_free@(2)'))||(<-2>(('prisoner_jail@(1)')W(FALSE))))
+)))

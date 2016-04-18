@@ -1,0 +1,5 @@
+<2>(
+((TRUE)U(('prisoner_free@(1)')))
+&&
+( (<+1>((TRUE)U('prisoner_free@(2)'))) && (<+1>(('prisoner_jail@(2)')W(FALSE))) )
+)

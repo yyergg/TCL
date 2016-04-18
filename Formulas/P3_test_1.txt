@@ -1,1 +1,0 @@
-<1>((<+2>((~('prisoner_jail@(3)')) W (FALSE))) && (<+2>( (TRUE) W ('prisoner_jail@(3)'))))

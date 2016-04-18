@@ -1,0 +1,12 @@
+<1>(
+( (('prisoner_jail@(2)')&&(('prisoner_jail@(3)')&&(('prisoner_jail@(4)')&&('prisoner_jail@(5)'))))W(FALSE) )
+&&(
+    (<+2>(<+3>(<+4>(<+5>
+        ((TRUE)U('prisoner_free@(1)'))
+        ))))
+    &&
+    (<+2>(<+3>(<+4>(<+5>
+        (('prisoner_jail@(1)')W(FALSE))
+        ))))
+    )
+)

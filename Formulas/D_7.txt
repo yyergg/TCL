@@ -1,0 +1,1 @@
+<2>(((('prisoner_confess@(2)')W(FALSE))) || ( <+1>((TRUE)U((X(('prisoner_deny@(1)')&&(('prisoner_confess@(2)')||(('prisoner_confess@(3)')||(('prisoner_confess@(4)')||(('prisoner_confess@(5)')||(('prisoner_confess@(6)')||('prisoner_confess@(7)')))))))))) ))

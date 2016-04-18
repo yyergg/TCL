@@ -72,7 +72,7 @@ void ComputationTreeNode::ListAllPossibleGuess() {
     while (i < this->all_possible_guess.size()) {
         // deducting until first unguessed g_parse_tree found
         for (j = 0; j < g_parse_count; j++) {
-            if (this->all_possible_guess[i][j] == MUST_TRUE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+            if (this->all_possible_guess[i][j] == MUST_TRUE) {
                 if (g_parse_tree[j]->type == NOT) {
                     this->all_possible_guess[i][j] = DONT_CARE;
                     this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
@@ -116,7 +116,7 @@ void ComputationTreeNode::ListAllPossibleGuess() {
                     // all the cases need guessing will come to this break
                     break;
                 }
-            } else if (this->all_possible_guess[i][j] == MUST_FALSE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+            } else if (this->all_possible_guess[i][j] == MUST_FALSE) {
                 if (g_parse_tree[j]->type == NOT) {
                     this->all_possible_guess[i][j] = DONT_CARE;
                     this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;
@@ -154,6 +154,94 @@ void ComputationTreeNode::ListAllPossibleGuess() {
                         if (this->all_possible_guess[i][left] == MUST_FALSE
                                 && this->all_possible_guess[i][right] == MUST_FALSE) {
                             this->all_possible_guess[i][j] = DONT_CARE;
+                            continue;
+                        }
+                    }
+                    // all the cases need guessing will come to this break
+                    break;
+                }
+            } else if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
+                if (g_parse_tree[j]->type == NOT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
+                } else if (g_parse_tree[j]->type == PLUS
+                           || g_parse_tree[j]->type == MINUS
+                           || g_parse_tree[j]->type == PARSE_ROOT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;
+                } else if (g_parse_tree[j]->type == NEXT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                    if (this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] == DONT_CARE) {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_MUST_TRUE;
+                    } else {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_AND_MUST_TRUE;
+                    }
+                } else if (g_parse_tree[j]->type == TRUE_NODE
+                           || g_parse_tree[j]->type == FALSE_NODE
+                           || g_parse_tree[j]->type == ATOMIC) {
+                    continue;
+                } else { //OR AND UNTIL WNTIL
+                    // Already satisfied or 1 way
+                    int left = g_parse_tree[j]->outs[0]->index;
+                    int right = g_parse_tree[j]->outs[1]->index;
+                    if (g_parse_tree[j]->type == OR) {
+                        if (this->all_possible_guess[i][left] == MUST_TRUE
+                                || this->all_possible_guess[i][right] == MUST_TRUE) {
+                            this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                            continue;
+                        }
+                    } else if (g_parse_tree[j]->type == AND) {
+                        this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                        this->all_possible_guess[i][left] = MUST_TRUE;
+                        this->all_possible_guess[i][right] = MUST_TRUE;
+                        continue;
+                    } else {
+                        if (this->all_possible_guess[i][right] == MUST_TRUE) {
+                            this->all_possible_guess[i][j] = PASS_DOWN_MUST_TRUE;
+                            continue;
+                        }
+                    }
+                    // all the cases need guessing will come to this break
+                    break;
+                }
+            } else if (this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
+                if (g_parse_tree[j]->type == NOT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;
+                } else if (g_parse_tree[j]->type == PLUS
+                           || g_parse_tree[j]->type == MINUS
+                           || g_parse_tree[j]->type == PARSE_ROOT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
+                    this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
+                } else if (g_parse_tree[j]->type == NEXT) {
+                    this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
+                    if (this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] == DONT_CARE) {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_MUST_FALSE;
+                    } else {
+                        this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = PASS_DOWN_AND_MUST_FALSE;
+                    }
+                } else if (g_parse_tree[j]->type == TRUE_NODE
+                           || g_parse_tree[j]->type == FALSE_NODE
+                           || g_parse_tree[j]->type == ATOMIC) {
+                    continue;
+                } else { //OR AND UNTIL WNTIL
+                    // Already satisfied or 1 way
+                    int left = g_parse_tree[j]->outs[0]->index;
+                    int right = g_parse_tree[j]->outs[1]->index;
+                    if (g_parse_tree[j]->type == OR) {
+                        this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
+                        this->all_possible_guess[i][left] = MUST_FALSE;
+                        this->all_possible_guess[i][right] = MUST_FALSE;
+                    } else if (g_parse_tree[j]->type == AND) {
+                        if (this->all_possible_guess[i][left] == MUST_FALSE
+                                || this->all_possible_guess[i][right] == MUST_FALSE) {
+                            this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
+                            continue;
+                        }
+                    } else {
+                        if (this->all_possible_guess[i][left] == MUST_FALSE
+                                && this->all_possible_guess[i][right] == MUST_FALSE) {
+                            this->all_possible_guess[i][j] = PASS_DOWN_MUST_FALSE;
                             continue;
                         }
                     }
@@ -324,15 +412,13 @@ void ComputationTreeNode::CheckLocal() {
 }
 
 bool ComputationTreeNode::isDifferent(ComputationTreeNode* target){
-    cout<<"diff: "<<this<<" "<<target<<endl;
+    // cout<<"diff: "<<this<<" "<<target<<endl;
     if(target->state == this->state){
         int i;
         for(i=0;i<g_parse_count;i++){
-            if(g_parse_tree[i]->type == UNTIL || g_parse_tree[i]->type == WNTIL){
-                if(this->all_possible_guess[this->current_guess][i]
-                    != target->all_possible_guess[target->current_guess][i]){
-                    return true;
-                }
+            if(this->all_possible_guess[this->current_guess][i]
+                != target->all_possible_guess[target->current_guess][i]){
+                return true;
             }
         }
         return false;
@@ -376,10 +462,10 @@ int ComputationTreeNode::CheckPath(){
     }
     cout<<"lasso_length:"<< lasso_length << endl;
     // has not reached the depth of next
-    if(this->GetMaxNextHeight() > lasso_length){
-        cout<<"Continue, lasso shorter than NEXT depth."<<endl;
-        return CONTINUE;
-    }
+    // if(this->GetMaxNextHeight() > lasso_length){
+    //     cout<<"Continue, lasso shorter than NEXT depth."<<endl;
+    //     return CONTINUE;
+    // }
 
     // MUST_TRUE UNTIL and MUST_FALSE WNTIL cannot be always passed down in a lasso
     // prepare unitl_array
@@ -430,13 +516,13 @@ int ComputationTreeNode::CheckPath(){
         }
     }
     if(!some_until_left){
-        cout<<"PASS, all until satisfied.";
+        cout<<"PASS, all until satisfied."<<endl;
         return PASS;
     } else if(satisfied_something_new){
-        cout<<"CONTINUE, still some until are unsat.";
+        cout<<"CONTINUE, still some until are unsat."<<endl;
         return CONTINUE;
     }
-    cout<<"FAIL, current sub-lasso dosent satisfied any new UNTIL";
+    cout<<"FAIL, current sub-lasso dosent satisfied any new UNTIL"<<endl;
     return FAIL;
 }
 
@@ -563,10 +649,10 @@ bool ComputationTreeNode::CheckTCL() {
     cout << "CheckTCL:" << endl;
     cout << red_diagram_string(this->state->red)<<endl;
     int i;
-    for (i = 0; i < g_parse_count; i++) {
-        cout << this->obligation[i] << " ";
-    }
-    cout << endl;
+    // for (i = 0; i < g_parse_count; i++) {
+    //     cout << this->obligation[i] << " ";
+    // }
+    // cout << endl;
     this->ListAllPossibleGuess();
     this->PrintAllPossibleGuess();
     this->CheckLocal();
@@ -590,7 +676,7 @@ bool ComputationTreeNode::CheckTCL() {
         // Pass down according to strategy selection
         this->GetFirstStrategySelection();
         do {
-            this->PrintStrategySelection();
+            //this->PrintStrategySelection();
             cout<<">>>>>>>>>>>>>>>>>>>>"<<endl;
             if (this->PassDown()) {
                 cout << "All PassDown"<<endl;
@@ -709,7 +795,7 @@ void FillMatrix(TCLFormula* F, int* inheritedStrategy) {
         }
     }
     // Add current owner's strategy
-    if (F->type == PARSE_ROOT || F->type == PLUS || F->type == MINUS) {
+    if (F->type == PARSE_ROOT || F->type == PLUS) {
         currentStrategy[F->strategy_index] = 1;
     }
     // finish preparing currentStrategy
@@ -829,9 +915,7 @@ int main(int argc, char** argv) {
     do {
         yyparse();
     } while (!feof(yyin));
-
     SetupTCLFormula(g_parse_root);
-
     PrintStrategy2owner();
 
     SetupMatrix();

@@ -1,0 +1,8 @@
+<2>(<+3>(<+4>(<+5>(<+6>(<+7>(
+((TRUE)U(('prisoner_free@(1)')))
+&&(
+    ((<+1>((TRUE)U (('prisoner_free@(2)')&&(('prisoner_free@(3)')&&(('prisoner_free@(4)')&&(('prisoner_free@(5)')&&(('prisoner_free@(6)')&&('prisoner_free@(7)')))))) ))
+    &&
+    (<+1>( (('prisoner_jail@(2)')&&(('prisoner_jail@(3)')&&(('prisoner_jail@(4)')&&(('prisoner_jail@(5)')&&(('prisoner_jail@(6)')&&('prisoner_jail@(7)')))))) W(FALSE))))
+    )
+))))))

@@ -8,4 +8,4 @@ lex.yy.c:TCL.l
 	flex TCL.l
 
 clean:
-	rm *.o *.redtab *.ir TCL
+	rm *.o ./Models/*.redtab ./Models/*.ir TCL
