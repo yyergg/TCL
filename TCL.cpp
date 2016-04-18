@@ -72,7 +72,7 @@ void ComputationTreeNode::ListAllPossibleGuess() {
     while (i < this->all_possible_guess.size()) {
         // deducting until first unguessed g_parse_tree found
         for (j = 0; j < g_parse_count; j++) {
-            if (this->all_possible_guess[i][j] == MUST_TRUE) {
+            if (this->all_possible_guess[i][j] == MUST_TRUE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_TRUE) {
                 if (g_parse_tree[j]->type == NOT) {
                     this->all_possible_guess[i][j] = DONT_CARE;
                     this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_FALSE;
@@ -116,7 +116,7 @@ void ComputationTreeNode::ListAllPossibleGuess() {
                     // all the cases need guessing will come to this break
                     break;
                 }
-            } else if (this->all_possible_guess[i][j] == MUST_FALSE) {
+            } else if (this->all_possible_guess[i][j] == MUST_FALSE || this->all_possible_guess[i][j] == PASS_DOWN_AND_MUST_FALSE) {
                 if (g_parse_tree[j]->type == NOT) {
                     this->all_possible_guess[i][j] = DONT_CARE;
                     this->all_possible_guess[i][g_parse_tree[j]->outs[0]->index] = MUST_TRUE;

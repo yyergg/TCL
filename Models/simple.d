@@ -10,7 +10,7 @@ global discrete
 global synchronizer p1_1,p1_2,p2;
 
 mode dummy_0(true){
-    when !p1_1 (true) may turn = 1; q=0; goto dummy_1;
+    when !p1_1 (true) may turn = 2; q=0; goto dummy_1;
     when !p1_2 (true) may turn = 2; p=0; goto dummy_2;
 }
 
